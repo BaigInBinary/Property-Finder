@@ -334,7 +334,7 @@ $stmt->close();
                     </button>
 
                     <!-- Brand -->
-                    <a class="navbar-brand ms-lg-3" href="index.php">
+                    <a class="navbar-brand ms-lg-3" href="../index.php">
                         <i class="fas fa-home"></i>
                         <span>PropFind</span>
                     </a>
@@ -447,10 +447,10 @@ $stmt->close();
                                     <span class="d-none d-md-inline"><?php echo ucfirst($userName) ?></span>
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end">
-                                    <a class="dropdown-item" href="#profile">
+                                    <!-- <a class="dropdown-item" href="#profile">
                                         <i class="fas fa-user me-2"></i>Profile
-                                    </a>
-                                    <div class="dropdown-divider"></div>
+                                    </a> -->
+                                    <!-- <div class="dropdown-divider"></div> -->
                                     <a class="dropdown-item text-danger" href="logout.php">
                                         <i class="fas fa-sign-out-alt me-2"></i>Logout
                                     </a>
@@ -710,7 +710,7 @@ $stmt->close();
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Email</label>
-                                                    <input type="email" name="email" class="form-control" value="">
+                                                    <input type="email" name="email" class="form-control" value="" readonly>
                                                 </div>
                                             </div>
                                             <div class="row mb-3">

@@ -275,10 +275,14 @@ body {
 
 /* Hero Section Styles */
 .hero-section {
-  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
-    url("../images/hero-bg.jpg") center/cover no-repeat;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url("../images/property1.jpg") center/cover no-repeat;
   padding: 80px 0 100px; /* Reduced top padding since we have body padding */
   color: white;
+  position: relative;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
 }
 
 .hero-section h1 {

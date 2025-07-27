@@ -157,7 +157,7 @@
                 <p class="lead mb-4">Join thousands of satisfied customers who found their dream property through PropFind</p>
                 <div class="cta-buttons">
                     <a href="listings.php" class="btn btn-primary btn-lg me-3">Explore Listings</a>
-                    <a href="contact.html" class="btn btn-primary btn-lg">Contact Us</a>
+                    <a href="contact.php" class="btn btn-primary btn-lg">Contact Us</a>
                 </div>
             </div>
         </section>
