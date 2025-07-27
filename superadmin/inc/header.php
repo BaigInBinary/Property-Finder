@@ -30,7 +30,7 @@
                             <i class="fas fa-user-circle"></i> Admin
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
+                            <!-- <li><a class="dropdown-item" href="settings.html"><i class="fas fa-cog"></i> Settings</a></li> -->
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                         </ul>

@@ -87,6 +87,18 @@ if ($stmt->num_rows > 0) {
 }
 $stmt->close();
 
+// Check if name already exists
+$stmt = $conn->prepare("SELECT id FROM users WHERE name = ?");
+$stmt->bind_param("s", $name);
+$stmt->execute();
+$stmt->store_result();
+if ($stmt->num_rows > 0) {
+    echo json_encode(['status' => 'error', 'message' => 'Name is already taken']);
+    $stmt->close();
+    exit;
+}
+$stmt->close();
+
 // Hash password
 $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 

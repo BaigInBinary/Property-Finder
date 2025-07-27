@@ -369,24 +369,10 @@ $stmt->close();
                                     <i class="fas fa-ellipsis-h d-lg-none me-2"></i>More
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="moreDropdown">
-                                    <li>
-                                        <a class="dropdown-item" href="saved-properties.php">
-                                            <i class="fas fa-bookmark me-2"></i>Saved Properties
-                                        </a>
-                                    </li>
+                                 
                                     <li>
                                         <a class="dropdown-item" href="../compare.php">
                                             <i class="fas fa-exchange-alt me-2"></i>Compare Properties
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="../referral.php">
-                                            <i class="fas fa-gift me-2"></i>Referral Rewards
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="../reviews.php">
-                                            <i class="fas fa-star me-2"></i>Ratings & Reviews
                                         </a>
                                     </li>
                                     <li>
@@ -463,9 +449,6 @@ $stmt->close();
                                 <div class="dropdown-menu dropdown-menu-end">
                                     <a class="dropdown-item" href="#profile">
                                         <i class="fas fa-user me-2"></i>Profile
-                                    </a>
-                                    <a class="dropdown-item" href="#settings">
-                                        <i class="fas fa-cog me-2"></i>Settings
                                     </a>
                                     <div class="dropdown-divider"></div>
                                     <a class="dropdown-item text-danger" href="logout.php">

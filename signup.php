@@ -41,7 +41,7 @@
             <select class="form-select" id="role" name="role" required>
                 <option value="">Select account type</option>
                 <option value="user">User</option>
-                <option value="admin">Admin</option>
+                <!-- <option value="admin">Admin</option> -->
             </select>
         </div>
     </div>

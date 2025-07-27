@@ -84,17 +84,31 @@ document.addEventListener("DOMContentLoaded", function () {
           const res = JSON.parse(xhr.responseText);
           if (res.status === "success") {
             console.log("✅ Success:", res.message);
+
+            // Customize success message for signup
+            let successMessage =
+              res.message || "Operation completed successfully";
+            if (action === "signup_user") {
+              successMessage =
+                "Account created successfully! Redirecting to login page...";
+            }
+
             iziToast.success({
               title: "Success",
-              message: res.message || "Operation completed successfully",
+              message: successMessage,
               position: "topRight",
             });
 
-            // Redirect if login
+            // Redirect based on action
             if (action === "login_user") {
               setTimeout(() => {
                 window.location.href = "dashboard/dashboard.php";
               }, 1500); // slight delay so user sees success
+            } else if (action === "signup_user") {
+              // Redirect to login page after successful signup
+              setTimeout(() => {
+                window.location.href = "login.php";
+              }, 1500); // slight delay so user sees success message
             } else {
               form.reset();
               form.classList.remove("was-validated");
