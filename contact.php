@@ -4,7 +4,7 @@
         <!-- Contact Header -->
         <section class="contact-header text-center">
             <div class="container">
-                <h1 class="display-4 fw-bold text-primary mb-2">Contact Us</h1>
+                <h1 class="display-4 fw-semibold mt-4  mb-2">Contact Us</h1>
                 <p class="lead text-muted">We're here to help with all your real estate needs</p>
             </div>
         </section>
@@ -40,35 +40,35 @@
                     <!-- Contact Info Column -->
                     <div class="col-lg-6">
                         <div class="contact-info-wrapper">
-                            <h2 class="h3 mb-4">Get in touch</h2>
+                            <!-- <h2 class="h3 mb-4">Get in touch</h2> -->
                             
                             <!-- Contact Cards -->
                             <div class="contact-card mb-4">
-                                <div class="icon-wrapper">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                </div>
                                 <div class="info-content">
-                                    <h3>Our Location</h3>
+                                    <div class="d-flex align-items-center "> 
+                                        <i class="fas fa-map-marker-alt h5 me-2"></i> 
+                                        <h3>Our Location</h3>
+                                    </div>
                                     <p>Government college university,<br>Faisalabad, Pakistan</p>
                                 </div>
                             </div>
 
                             <div class="contact-card mb-4">
-                                <div class="icon-wrapper">
-                                    <i class="fas fa-phone"></i>
-                                </div>
                                 <div class="info-content">
-                                    <h3>Phone Number</h3>
+                               <div class="d-flex align-items-center "> 
+                                <i class="fas fa-phone h5 me-2"></i> 
+                                <h3>Phone Number</h3>
+                                </div>
                                     <p>+92 3245947204</p>
                                 </div>
                             </div>
 
                             <div class="contact-card mb-4">
-                                <div class="icon-wrapper">
-                                    <i class="fas fa-envelope"></i>
-                                </div>
                                 <div class="info-content">
-                                    <h3>Email Address</h3>
+                                    <div class="d-flex align-items-center "> 
+                                        <i class="fas fa-envelope h5 me-2"></i> 
+                                        <h3>Email Address</h3>
+                                    </div>
                                     <p>ammaramjad0324@gmail.com</p>
                                 </div>
                             </div>
@@ -90,4 +90,5 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JavaScript -->
     <script src="js/main.js"></script>
+    <script src="js/contact.js"></script>
     <?php include'inc/footer.php'?>
