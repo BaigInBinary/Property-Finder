@@ -32,8 +32,12 @@ if (isset($_SESSION['user_id'])) {
             $destination = $uploadDir . $newFileName;
 
             if (move_uploaded_file($fileTmp, $destination)) {
-                $picturePath = $destination;
+                $picturePath = 'uploads/profile-pic/' . $newFileName;
+            } else {
+                error_log("Failed to move uploaded file from $fileTmp to $destination");
             }
+        } else {
+            error_log("Invalid file extension: $fileExt");
         }
     }
 
@@ -48,6 +52,13 @@ if (isset($_SESSION['user_id'])) {
 
     if ($stmt->execute()) {
         $response['success'] = true;
+        $response['message'] = 'Profile updated successfully';
+        if ($picturePath) {
+            $response['picture_path'] = $picturePath;
+        }
+    } else {
+        $response['message'] = 'Database update failed: ' . $stmt->error;
+        error_log("Profile update failed: " . $stmt->error);
     }
 }
 

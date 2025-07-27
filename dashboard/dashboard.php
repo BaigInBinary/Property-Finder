@@ -254,10 +254,10 @@ $stmt->close();
 
             <div class="sidebar-user">
 
-                <img src="../<?php echo $picture ?>" alt="User Avatar" class="user-avatar">
+                <img src="<?php echo $picture ? '../' . $picture : '../images/user.png' ?>" alt="User Avatar" class="user-avatar">
                 <div class="user-info">
-                    <h6 class="user-name mb-0"><? $userName ?></h6>
-                    <span class="user-role">Agent</span>
+                    <h6 class="user-name mb-0" id="profileName"><? $userName ?></h6>
+                    <span class="user-role" id="profileRole">Agent</span>
                 </div>
             </div>
 
@@ -669,12 +669,11 @@ $stmt->close();
                                         <div class="card-body text-center">
 
                                             <div class="profile-avatar-wrapper mb-3">
-                                                <img src="<?php echo "hello" ?>" alt="Profile Avatar" class="profile-avatar" title="Upload your profile picture">
-
-                                                <input type="file" name="picture" accept="image/*" class="form-control mb-3">
-                                                <button type="submit" class="btn btn-sm btn-primary avatar-upload">
+                                                <img src="<?php echo $picture ? '../' . $picture : '../images/user.png' ?>" alt="Profile Avatar" class="profile-avatar" title="Upload your profile picture">
+                                                <input type="file" name="picture" accept="image/*" class="form-control mb-3" id="profilePictureInput" style="display: none;">
+                                                <label for="profilePictureInput" class="btn btn-sm btn-primary avatar-upload" id="uploadPictureBtn" style="cursor: pointer;">
                                                     <i class="fas fa-camera"></i>
-                                                </button>
+                                                </label>
                                             </div>
                                             <h5 class="mt-5" id="profileName">Name not set</h5>
                                             <p class="text-muted" id="profileRole">Role not set</p>
@@ -1186,7 +1185,7 @@ function handleBuyRequest(id, action) {
                     if (response.success) {
                         // Profile Picture
                         if (response.data.picture) {
-                            $('.profile-avatar').attr('src', response.data.picture);
+                            $('.profile-avatar').attr('src', '../' + response.data.picture);
                         } else {
                             $('.profile-avatar').attr('src', '../images/user.png')
                                 .attr('title', 'Upload your profile picture');
@@ -1236,11 +1235,33 @@ function handleBuyRequest(id, action) {
                         console.log('Profile Update Response:', response);
 
                         if (response.success) {
+                            console.log('Profile update successful');
+                            if (response.picture_path) {
+                                console.log('New picture path:', response.picture_path);
+                            }
                             iziToast.success({
                                 title: 'Success',
                                 message: 'Profile updated successfully!',
                                 position: 'topRight'
                             });
+                            
+                            // Update profile picture if a new one was uploaded
+                            if (response.picture_path) {
+                                $('.profile-avatar').attr('src', '../' + response.picture_path);
+                            }
+                            
+                            // Refresh profile data to show updated picture
+                            $.ajax({
+                                url: '../backend/fetch-dashboard-details.php',
+                                type: 'GET',
+                                dataType: 'json',
+                                success: function(profileResponse) {
+                                    if (profileResponse.success && profileResponse.data.picture) {
+                                        $('.profile-avatar').attr('src', '../' + profileResponse.data.picture);
+                                    }
+                                }
+                            });
+                            
                             setTimeout(() => {
                                 window.location.href = 'dashboard.php#profile';
                             }, 1000);
@@ -1252,15 +1273,69 @@ function handleBuyRequest(id, action) {
                             });
                         }
                     },
-                    error: function() {
+                    error: function(xhr, status, error) {
+                        console.error('Profile update error:', xhr.responseText);
                         iziToast.error({
                             title: 'Error',
-                            message: 'An error occurred while updating the profile.',
+                            message: 'An error occurred while updating the profile: ' + error,
                             position: 'topRight'
                         });
                     }
                 });
             });
+
+            // ----------------- Profile Picture Handling -------------------
+            // Handle file input change for profile picture preview
+            let isProcessingFile = false;
+            $('#profilePictureInput').off('change').on('change', function() {
+                console.log('File input change event triggered');
+                if (isProcessingFile) {
+                    console.log('Already processing file, skipping');
+                    return;
+                }
+                isProcessingFile = true;
+                
+                const file = this.files[0];
+                if (file) {
+                    // Validate file type
+                    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                    if (!allowedTypes.includes(file.type)) {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Please select a valid image file (JPG, PNG, GIF)',
+                            position: 'topRight'
+                        });
+                        this.value = '';
+                        isProcessingFile = false;
+                        return;
+                    }
+
+                    // Validate file size (max 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'File size must be less than 5MB',
+                            position: 'topRight'
+                        });
+                        this.value = '';
+                        isProcessingFile = false;
+                        return;
+                    }
+
+                    // Preview the image
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('.profile-avatar').attr('src', e.target.result);
+                        isProcessingFile = false;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    isProcessingFile = false;
+                }
+            });
+
+            // Handle upload button click - using label approach (no JavaScript needed)
+            // The label automatically triggers the file input when clicked
 
             // ----------------- Fetch User Properties -------------------
             fetchUserProperties();
