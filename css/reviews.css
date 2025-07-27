@@ -1,0 +1,128 @@
+/* Reviews Container */
+.reviews-container {
+    padding-top: 76px;
+}
+
+/* Overall Rating */
+.overall-rating {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+}
+
+.overall-rating h2 {
+    font-size: 3rem;
+    font-weight: bold;
+}
+
+/* Stars */
+.stars {
+    color: #ffc107;
+}
+
+.stars i {
+    margin: 0 2px;
+}
+
+/* Rating Input */
+.rating-input {
+    font-size: 1.5rem;
+    color: #ffc107;
+    cursor: pointer;
+}
+
+.rating-input i {
+    margin-right: 5px;
+    transition: all 0.2s ease;
+}
+
+.rating-input i:hover,
+.rating-input i.active {
+    transform: scale(1.2);
+}
+
+/* Rating Distribution */
+.rating-distribution .progress {
+    height: 8px;
+    background-color: #e9ecef;
+}
+
+.rating-distribution .progress-bar {
+    background-color: #007bff;
+}
+
+.rating-bar span {
+    min-width: 30px;
+}
+
+/* Review Item */
+.review-item {
+    padding: 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+    transition: background-color 0.2s ease;
+}
+
+.review-item:hover {
+    background-color: #f8f9fa;
+}
+
+.review-item:last-child {
+    border-bottom: none;
+}
+
+.review-text {
+    margin: 1rem 0;
+    line-height: 1.6;
+}
+
+.review-actions {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.review-item:hover .review-actions {
+    opacity: 1;
+}
+
+/* Write Review Form */
+.write-review {
+    background-color: #f8f9fa;
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.review-form textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .overall-rating {
+        margin-top: 1rem;
+    }
+
+    .review-actions {
+        opacity: 1;
+    }
+
+    .rating-input {
+        font-size: 1.25rem;
+    }
+}
+
+/* Animation for new reviews */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.review-item.new {
+    animation: fadeIn 0.5s ease forwards;
+} 

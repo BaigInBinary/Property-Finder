@@ -1,0 +1,151 @@
+/* Properties Page Styles */
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --success-color: #2ecc71;
+    --warning-color: #f1c40f;
+    --danger-color: #e74c3c;
+    --light-gray: #f8f9fa;
+    --border-color: #e9ecef;
+    --text-muted: #6c757d;
+    --transition: all 0.3s ease;
+}
+
+/* Properties Content Area */
+.properties-content {
+    padding: 2rem;
+    background-color: var(--light-gray);
+    min-height: calc(100vh - var(--navbar-height));
+}
+
+/* Card Styles */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Table Styles */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    border-top: none;
+    background-color: var(--light-gray);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Property Image in Table */
+.table img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+}
+
+/* Status Badge Styles */
+.badge {
+    padding: 0.5em 0.75em;
+    font-weight: 500;
+}
+
+/* Button Styles */
+.btn-group .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.btn-group .btn i {
+    font-size: 0.875rem;
+}
+
+/* Filter Styles */
+.form-select {
+    padding-right: 2.5rem;
+}
+
+.input-group .input-group-text {
+    background-color: white;
+    border-right: none;
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+.input-group .form-control:focus {
+    border-color: #ced4da;
+    box-shadow: none;
+}
+
+/* Modal Styles */
+.modal-content {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color);
+    padding: 1.5rem;
+}
+
+/* Pagination Styles */
+.pagination {
+    margin-bottom: 0;
+}
+
+.page-link {
+    padding: 0.5rem 0.75rem;
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+}
+
+.page-link:hover {
+    background-color: var(--light-gray);
+    color: var(--primary-color);
+}
+
+.page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991.98px) {
+    .d-flex.gap-2 {
+        flex-wrap: wrap;
+    }
+
+    .form-select.w-auto {
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .properties-header .row > div {
+        text-align: center !important;
+    }
+
+    .properties-header .btn {
+        margin-top: 1rem;
+    }
+
+    .table-responsive {
+        margin: 0 -1.5rem;
+    }
+} 

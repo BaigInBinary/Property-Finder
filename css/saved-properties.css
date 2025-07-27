@@ -1,0 +1,97 @@
+.saved-properties-container {
+    min-height: calc(100vh - 300px);
+}
+
+.empty-state {
+    padding: 4rem 2rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    color: #adb5bd;
+}
+
+.property-card {
+    height: 100%;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.property-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.property-image-wrapper {
+    position: relative;
+    padding-top: 66.67%; /* 3:2 aspect ratio */
+    overflow: hidden;
+}
+
+.property-image-wrapper img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.bookmark-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.bookmark-btn:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.property-features {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+.property-features span {
+    display: flex;
+    align-items: center;
+}
+
+.property-features i {
+    margin-right: 0.5rem;
+}
+
+.section-title {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Animation for removing properties */
+.property-card.removing {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+} 

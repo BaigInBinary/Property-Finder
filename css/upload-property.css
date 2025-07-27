@@ -1,0 +1,82 @@
+/* Upload Property Page Styles */
+
+/* Custom styles for file inputs and preview */
+.custom-file-preview {
+    max-width: 150px;
+    height: 150px;
+    margin: 10px;
+    position: relative;
+    display: inline-block;
+}
+
+.custom-file-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.preview-remove-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* Form Styles */
+.form-label.required::after {
+    content: "*";
+    color: red;
+    margin-left: 4px;
+}
+
+/* Preview Button Styles */
+#previewBtn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+#previewBtn:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+}
+
+#previewBtn i {
+    margin-right: 5px;
+}
+
+/* Preview Modal Styles */
+.preview-item {
+    display: flex;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 1rem;
+}
+
+.preview-label {
+    font-weight: bold;
+    min-width: 200px;
+}
+
+.preview-value {
+    flex: 1;
+} 
