@@ -24,7 +24,7 @@
         <div class="col-lg-8">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h2 class="card-title text-center mb-4">Upload Property</h2>
+                    <h1 class="card-title text-center fw-bold fs-4 mb-4">Upload Property</h1>
 
                     <!-- Upload Form -->
                     <form id="propertyUploadForm" class="ajax-img" data-action="upload_property" enctype="multipart/form-data">
@@ -195,9 +195,9 @@
 
                         <!-- Form Buttons -->
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="button" class="btn btn-outline-primary" id="previewBtn">
+                            <!-- <button type="button" class="btn btn-primary" id="previewBtn">
                                 <i class="fas fa-eye"></i> Preview
-                            </button>
+                            </button> -->
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-upload"></i> Submit now
                             </button>

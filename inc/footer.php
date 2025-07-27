@@ -20,11 +20,11 @@
             <div class="col-lg-2 col-md-6">
                 <h5 class="footer-title">Quick Links</h5>
                 <ul class="footer-links">
-                    <li><a href="#"><i class="fas fa-chevron-right"></i> Home</a></li>
-                    <li><a href="#"><i class="fas fa-chevron-right"></i> Listings</a></li>
-                    <li><a href="#"><i class="fas fa-chevron-right"></i> Upload Property</a></li>
-                    <li><a href="#"><i class="fas fa-chevron-right"></i> Contact</a></li>
-                    <li><a href="#"><i class="fas fa-chevron-right"></i> Privacy Policy</a></li>
+                    <li><a href="index.php"><i class="fas fa-chevron-right"></i> Home</a></li>
+                    <li><a href="listings.php"><i class="fas fa-chevron-right"></i> Listings</a></li>
+                    <li><a href="upload-property.php"><i class="fas fa-chevron-right"></i> Upload Property</a></li>
+                    <li><a href="contact.php"><i class="fas fa-chevron-right"></i> Contact</a></li>
+                    <!-- <li><a href="privacy-policy.php"><i class="fas fa-chevron-right"></i> Privacy Policy</a></li> -->
                 </ul>
             </div>
 

@@ -206,7 +206,7 @@
                                         <span>•••• •••• •••• 4242</span>
                                         <span class="badge bg-primary ms-2">Default</span>
                                     </div>
-                                    <button class="btn btn-outline-primary mt-3">
+                                    <button class="btn btn-primary mt-3">
                                         <i class="fas fa-plus me-2"></i>Add Payment Method
                                     </button>
                                 </div>

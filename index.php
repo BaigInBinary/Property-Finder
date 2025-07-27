@@ -121,7 +121,7 @@ $locationQuery = $conn->query("SELECT DISTINCT city FROM properties WHERE city I
         
         <div class="row mt-4">
             <div class="col-12 text-center">
-                <a href="listings.php" class="btn btn-outline-primary btn-lg">View All Properties</a>
+                <a href="listings.php" class="btn btn-primary btn-lg">View All Properties</a>
             </div>
         </div>
     </div>

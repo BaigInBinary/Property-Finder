@@ -37,20 +37,18 @@ document.addEventListener("DOMContentLoaded", function () {
       );
       if (!existingAdminLink) {
         // Create divider
-        const divider = document.createElement("li");
-        divider.innerHTML = '<hr class="dropdown-divider">';
-
+        // const divider = document.createElement("li");
+        // divider.innerHTML = '<hr class="dropdown-divider">';
         // Create admin panel link
-        const adminItem = document.createElement("li");
-        adminItem.innerHTML = `
-                    <a class="dropdown-item" href="admin-panel.html">
-                        <i class="fas fa-user-shield me-2"></i>Admin Panel
-                    </a>
-                `;
-
+        // const adminItem = document.createElement("li");
+        // adminItem.innerHTML = `
+        //             <a class="dropdown-item" href="admin-panel.html">
+        //                 <i class="fas fa-user-shield me-2"></i>Admin Panel
+        //             </a>
+        //         `;
         // Add divider and admin link to dropdown
-        moreDropdown.appendChild(divider);
-        moreDropdown.appendChild(adminItem);
+        // moreDropdown.appendChild(divider);
+        // moreDropdown.appendChild(adminItem);
       }
     }
   }

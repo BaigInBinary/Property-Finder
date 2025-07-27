@@ -195,13 +195,7 @@ if ($currentPage === 'upload-property.php' && !isset($_SESSION['user_id'])) {
                                 <a class="dropdown-item" href="contact.php">
                                     <i class="fas fa-envelope me-2"></i>Contact
                                 </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item" href="superadmin/login.php">
-                                    <i class="fas fa-user-shield me-2"></i>Admin Panel
-                                </a>
-                            </li>
+                            </li> 
                         </ul>
                     </li>
                 </ul>
@@ -215,7 +209,7 @@ if ($currentPage === 'upload-property.php' && !isset($_SESSION['user_id'])) {
         </div>
         <a href="logout.php" class="btn btn-danger ms-2">Logout</a>
     <?php else: ?>
-        <a href="login.php" class="btn btn-outline-primary me-2">Login</a>
+        <a href="login.php" class="btn btn-primary me-2">Login</a>
         <a href="signup.php" class="btn btn-primary">Sign Up</a>
     <?php endif; ?>
 </div>

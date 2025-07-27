@@ -407,14 +407,14 @@ $stmt->close();
                                             <i class="fas fa-comments me-2"></i>Chat
                                         </a>
                                     </li>
-                                    <li>
+                                    <!-- <li>
                                         <hr class="dropdown-divider">
                                     </li>
                                     <li>
                                         <a class="dropdown-item" href="admin.php">
                                             <i class="fas fa-user-shield me-2"></i>Admin Panel
                                         </a>
-                                    </li>
+                                    </li> -->
                                 </ul>
                             </li>
                         </ul>
@@ -1359,7 +1359,7 @@ function handleBuyRequest(id, action) {
                                 <span title="Views"><i class="fas fa-eye"></i> 0</span>
                                 <span title="Likes"><i class="fas fa-heart"></i> 0</span>
                             </div>
-                            <button class="btn btn-outline-primary btn-sm" onclick="window.location.href='../view-property-detail.php?id=${property.id}'">
+                            <button class="btn btn-primary btn-sm" onclick="window.location.href='../view-property-detail.php?id=${property.id}'">
     View Details
 </button>
 
