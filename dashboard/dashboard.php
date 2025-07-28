@@ -155,6 +155,29 @@ $stmt->close();
         border-radius: 50%;
         object-fit: cover;
     }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border: none;
+    }
+
+    .card-header.bg-gradient-primary {
+        border-radius: 0.375rem 0.375rem 0 0;
+        padding: 1.5rem;
+    }
+
+    .card-header.bg-gradient-primary .fas {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .card-header.bg-gradient-primary h4 {
+        color: white;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header.bg-gradient-primary small {
+        color: rgba(255, 255, 255, 0.8);
+    }
 </style>
 
 <?php
@@ -272,6 +295,12 @@ $stmt->close();
                     <a href="#profile" class="nav-link" data-section="profile">
                         <i class="fas fa-user"></i>
                         <span>Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#account-settings" class="nav-link" data-section="account-settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Account Settings</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -735,6 +764,67 @@ $stmt->close();
     </div>
     </section>
 
+    <!-- Account Settings Section -->
+    <section id="account-settings" class="dashboard-section">
+        <div class="container-fluid">
+            <h2 class="section-title">Account Settings</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header bg-gradient-primary text-white">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-key fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h4 class="card-title mb-0 fw-bold">Change Password</h4>
+                                    <small class="opacity-75">Update your account security</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-4">Update your account password to keep your account secure.</p>
+                            <form id="changePasswordForm">
+                                <div class="mb-3">
+                                    <label for="currentPassword" class="form-label">Current Password</label>
+                                    <div class="input-group">
+                                        <input type="password" name="current_password" id="currentPassword" class="form-control" required>
+                                        <button class="btn btn-outline-secondary" type="button" id="toggleCurrentPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="newPassword" class="form-label">New Password</label>
+                                    <div class="input-group">
+                                        <input type="password" name="new_password" id="newPassword" class="form-control" required>
+                                        <button class="btn btn-outline-secondary" type="button" id="toggleNewPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                                    <div class="input-group">
+                                        <input type="password" name="confirm_password" id="confirmPassword" class="form-control" required>
+                                        <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-key me-2"></i>Change Password
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Properties Section -->
     <section id="properties" class="dashboard-section">
         <div class="container-fluid">
@@ -1147,6 +1237,8 @@ function handleBuyRequest(id, action) {
             </form>
         </div>
     </div>
+
+
 
 
     <script>
@@ -1640,7 +1732,100 @@ function handleBuyRequest(id, action) {
                 }
             });
 
+        // Account Settings Functions
+        // Change Password Form Handler
+        $('#changePasswordForm').submit(function(e) {
+            e.preventDefault();
+            
+            const currentPassword = $('#currentPassword').val();
+            const newPassword = $('#newPassword').val();
+            const confirmPassword = $('#confirmPassword').val();
+            
+            // Validation
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                iziToast.error({
+                    title: 'Error',
+                    message: 'Please fill in all fields.',
+                    position: 'topRight'
+                });
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                iziToast.error({
+                    title: 'Error',
+                    message: 'New password and confirm password do not match.',
+                    position: 'topRight'
+                });
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                iziToast.error({
+                    title: 'Error',
+                    message: 'New password must be at least 6 characters long.',
+                    position: 'topRight'
+                });
+                return;
+            }
+            
+            // Submit form
+            $.ajax({
+                url: '../backend/change-password.php',
+                type: 'POST',
+                data: {
+                    current_password: currentPassword,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        iziToast.success({
+                            title: 'Success',
+                            message: 'Password changed successfully!',
+                            position: 'topRight'
+                        });
+                        $('#changePasswordForm')[0].reset();
+                    } else {
+                        iziToast.error({
+                            title: 'Error',
+                            message: response.message || 'Failed to change password.',
+                            position: 'topRight'
+                        });
+                    }
+                },
+                error: function() {
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'An error occurred while changing password.',
+                        position: 'topRight'
+                    });
+                }
+            });
+        });
 
+        // Password visibility toggle event listeners
+        document.getElementById("toggleCurrentPassword")?.addEventListener("click", function () {
+            const input = document.getElementById("currentPassword");
+            input.type = input.type === "password" ? "text" : "password";
+            this.querySelector("i").classList.toggle("fa-eye");
+            this.querySelector("i").classList.toggle("fa-eye-slash");
+        });
+
+        document.getElementById("toggleNewPassword")?.addEventListener("click", function () {
+            const input = document.getElementById("newPassword");
+            input.type = input.type === "password" ? "text" : "password";
+            this.querySelector("i").classList.toggle("fa-eye");
+            this.querySelector("i").classList.toggle("fa-eye-slash");
+        });
+
+        document.getElementById("toggleConfirmPassword")?.addEventListener("click", function () {
+            const input = document.getElementById("confirmPassword");
+            input.type = input.type === "password" ? "text" : "password";
+            this.querySelector("i").classList.toggle("fa-eye");
+            this.querySelector("i").classList.toggle("fa-eye-slash");
+        });
 
         });
     </script>

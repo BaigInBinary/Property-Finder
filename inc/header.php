@@ -209,7 +209,7 @@ if ($currentPage === 'upload-property.php' && !isset($_SESSION['user_id'])) {
         </div>
         <a href="logout.php" class="btn btn-danger ms-2">Logout</a>
     <?php else: ?>
-        <a href="login.php" class="btn btn-primary me-2">Login</a>
+        <a href="login.php" class="btn btn-outline-primary me-2">Login</a>
         <a href="signup.php" class="btn btn-primary">Sign Up</a>
     <?php endif; ?>
 </div>
