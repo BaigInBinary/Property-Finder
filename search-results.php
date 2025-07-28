@@ -148,7 +148,7 @@ if (!empty($area)) $searchCriteria[] = "Area: " . $area . " " . htmlspecialchars
                     $firstImage = (!empty($images) && isset($images[0])) ? htmlspecialchars($images[0]) : 'https://via.placeholder.com/300x200?text=No+Image';
                     $bookmarkIcon = !empty($property['is_saved']) ? 'fas fa-bookmark text-primary' : 'far fa-bookmark';
                 ?>
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-3  col-md-4">
                     <div class="property-card card h-100 shadow-sm border-0 rounded-4 property-hover">
                         <div class="property-image-wrapper position-relative">
                             <img src="<?php echo $firstImage; ?>" alt="Property Image" class="card-img-top rounded-top-4" style="height: 220px; object-fit: cover;">
@@ -158,10 +158,6 @@ if (!empty($area)) $searchCriteria[] = "Area: " . $area . " " . htmlspecialchars
                                 <i class="fas fa-check-circle me-1"></i> Verified
                             </span>
 
-                            <!-- Property Type Badge -->
-                            <span class="property-type-badge badge bg-info position-absolute top-0 end-0 m-3">
-                                <?php echo ucfirst(htmlspecialchars($property['type'])); ?>
-                            </span>
 
                             <!-- Favorite Button -->
                             <button class="favorite-btn position-absolute bottom-0 end-0 m-3 btn btn-light rounded-circle shadow-sm"
