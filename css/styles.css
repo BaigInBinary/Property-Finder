@@ -1117,6 +1117,122 @@ input[type="file"].form-control::-webkit-file-upload-button:hover {
   animation: favoriteAnimation 0.3s ease-in-out;
 }
 
+/* Form Error Message Styles */
+#formError {
+  border-radius: 8px;
+  border: 1px solid #ffc107;
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Search Results Page Styles */
+.search-results-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.search-results-title {
+  color: #1e293b;
+  font-weight: 700;
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.search-results-title i {
+  color: #3b82f6;
+}
+
+.search-results-count .badge {
+  font-weight: 600;
+  border-radius: 25px;
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2);
+}
+
+.search-criteria .badge {
+  font-weight: 500;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.search-criteria .badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.no-results-container {
+  background: white;
+  border-radius: 15px;
+  padding: 3rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  margin: 2rem 0;
+}
+
+.no-results-icon {
+  opacity: 0.6;
+}
+
+.property-hover {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.property-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.property-type-badge {
+  font-weight: 500;
+  font-size: 0.8rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 15px;
+}
+
+.property-features .feature-item {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.property-features .feature-item i {
+  margin-right: 0.3rem;
+}
+
+/* Responsive adjustments for search results */
+@media (max-width: 768px) {
+  .search-results-title {
+    font-size: 2rem;
+  }
+
+  .search-criteria .d-flex {
+    justify-content: center !important;
+  }
+
+  .no-results-container {
+    padding: 2rem;
+    margin: 1rem 0;
+  }
+
+  .property-card {
+    margin-bottom: 1rem;
+  }
+}
+
 /* Dropdown Menu Styles */
 .dropdown-menu {
   background: rgba(15, 23, 42, 0.97);

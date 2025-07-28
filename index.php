@@ -253,6 +253,7 @@ $locationQuery = $conn->query("SELECT DISTINCT city FROM properties WHERE city I
 <!-- Custom JS -->
 <script src="js/main.js"></script>
 <script src="js/notifications.js"></script>
+<script src="js/script.js"></script>
 
 <div class="toast-container position-fixed top-0 end-0 p-3"></div>
 

@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const form = document.getElementById("propertySearchForm");
   const minPrice = document.getElementById("minPrice");
   const maxPrice = document.getElementById("maxPrice");
-  const location = document.getElementById("location");
+  const city = document.getElementById("city");
   const propertyType = document.getElementById("propertyType");
   const area = document.getElementById("area");
   const areaUnit = document.getElementById("areaUnit");
@@ -74,69 +74,67 @@ document.addEventListener("DOMContentLoaded", function () {
     // Reset validation states
     resetValidationStates();
 
-    // Validate all fields
-    let isValid = true;
+    // Check if any search criteria is entered
+    const hasMinPrice = minPrice.value.trim() !== "";
+    const hasMaxPrice = maxPrice.value.trim() !== "";
+    const hasCity = city.value.trim() !== "";
+    const hasPropertyType = propertyType.value.trim() !== "";
+    const hasArea = area.value.trim() !== "" && area.value > 0;
 
-    if (!location.value) {
-      setInvalidState(location, "Please select a location");
-      isValid = false;
+    // If no search criteria is entered, show error and prevent navigation
+    if (
+      !hasMinPrice &&
+      !hasMaxPrice &&
+      !hasCity &&
+      !hasPropertyType &&
+      !hasArea
+    ) {
+      showNoSearchCriteriaError();
+      return false;
     }
 
-    if (!propertyType.value) {
-      setInvalidState(propertyType, "Please select a property type");
-      isValid = false;
+    // Validate price range if both min and max are provided
+    if (hasMinPrice && hasMaxPrice) {
+      const min = parseFloat(minPrice.value);
+      const max = parseFloat(maxPrice.value);
+
+      if (min > max) {
+        setInvalidState(
+          minPrice,
+          "Minimum price cannot be greater than maximum price"
+        );
+        setInvalidState(
+          maxPrice,
+          "Maximum price must be greater than minimum price"
+        );
+        return false;
+      }
     }
 
-    if (!area.value || area.value <= 0) {
+    // Validate area if provided
+    if (hasArea && area.value <= 0) {
       setInvalidState(area, "Please enter a valid area");
-      isValid = false;
+      return false;
     }
 
-    // Validate price range
-    const min = parseFloat(minPrice.value);
-    const max = parseFloat(maxPrice.value);
+    // If validation passes, proceed with search
+    // Prepare search data
+    const searchData = {
+      minPrice: minPrice.value,
+      maxPrice: maxPrice.value,
+      city: city.value,
+      propertyType: propertyType.value,
+      area: area.value,
+      areaUnit: areaUnit.value,
+    };
 
-    if (!minPrice.value) {
-      setInvalidState(minPrice, "Please enter a minimum price");
-      isValid = false;
-    }
-
-    if (!maxPrice.value) {
-      setInvalidState(maxPrice, "Please enter a maximum price");
-      isValid = false;
-    }
-
-    if (min && max && min > max) {
-      setInvalidState(
-        minPrice,
-        "Minimum price cannot be greater than maximum price"
-      );
-      setInvalidState(
-        maxPrice,
-        "Maximum price must be greater than minimum price"
-      );
-      isValid = false;
-    }
-
-    if (isValid) {
-      // Prepare search data
-      const searchData = {
-        minPrice: minPrice.value,
-        maxPrice: maxPrice.value,
-        location: location.value,
-        propertyType: propertyType.value,
-        area: area.value,
-        areaUnit: areaUnit.value,
-      };
-
-      // Redirect to listings page with search parameters
-      const searchParams = new URLSearchParams(searchData);
-      window.location.href = `listings.php?${searchParams.toString()}`;
-    }
+    // Redirect to search results page with search parameters
+    const searchParams = new URLSearchParams(searchData);
+    window.location.href = `search-results.php?${searchParams.toString()}`;
   });
 
   // Real-time validation
-  [minPrice, maxPrice, location, propertyType, area].forEach((input) => {
+  [minPrice, maxPrice, city, propertyType, area].forEach((input) => {
     input.addEventListener("change", function () {
       if (this.value) {
         resetValidationState(this);
@@ -168,8 +166,28 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function resetValidationStates() {
-    [minPrice, maxPrice, location, propertyType, area].forEach((element) => {
+    [minPrice, maxPrice, city, propertyType, area].forEach((element) => {
       resetValidationState(element);
     });
+  }
+
+  function showNoSearchCriteriaError() {
+    // Create a general error message for the form
+    let formError = document.getElementById("formError");
+    if (!formError) {
+      formError = document.createElement("div");
+      formError.id = "formError";
+      formError.className = "alert alert-warning mt-3";
+      formError.style.display = "block";
+      form.insertBefore(formError, form.firstChild);
+    }
+    formError.textContent =
+      "Please enter at least one search criteria to find properties.";
+    formError.style.display = "block";
+
+    // Hide the error after 5 seconds
+    setTimeout(() => {
+      formError.style.display = "none";
+    }, 5000);
   }
 });
