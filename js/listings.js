@@ -93,7 +93,7 @@ function createGridCard(property) {
 function createListCard(property) {
   return `
     <div class="col-12 mb-4">
-        <a href="view-view-property-detail.php?id=${
+        <a href="view-property-detail.php?id=${
           property.id
         }" class="text-decoration-none text-dark">
             <div class="card property-card list-view" data-property-id="${
