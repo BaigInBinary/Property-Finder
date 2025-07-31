@@ -830,7 +830,7 @@ $stmt->close();
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="section-title mb-0">My Properties</h2>
-                <button class="btn btn-primary">
+                <button class="btn btn-primary" onclick="window.location.href='../upload-property.php'">
                     <i class="fas fa-plus me-2"></i>Add New Property
                 </button>
             </div>
@@ -1696,8 +1696,11 @@ function handleBuyRequest(id, action) {
             // delete property
             $(document).on('click', '.delete-btn', function() {
                 const propertyId = $(this).data('property-id');
+                console.log('Delete button clicked for property ID:', propertyId);
 
                 if (confirm('Are you sure you want to delete this property?')) {
+                    console.log('User confirmed deletion, sending request...');
+                    
                     $.ajax({
                         url: '../backend/delete-property.php',
                         type: 'POST',
@@ -1705,13 +1708,18 @@ function handleBuyRequest(id, action) {
                             property_id: propertyId
                         },
                         dataType: 'json',
+                        beforeSend: function() {
+                            console.log('Sending delete request for property ID:', propertyId);
+                        },
                         success: function(response) {
+                            console.log('Delete response:', response);
                             if (response.success) {
                                 iziToast.success({
                                     title: 'Deleted',
                                     message: 'Property deleted successfully.',
                                     position: 'topRight'
                                 });
+                                console.log('Property deleted successfully, refreshing list...');
                                 fetchUserProperties(); // Refresh properties
                             } else {
                                 iziToast.error({
@@ -1719,9 +1727,11 @@ function handleBuyRequest(id, action) {
                                     message: response.message || 'Failed to delete property.',
                                     position: 'topRight'
                                 });
+                                console.log('Delete failed:', response.message);
                             }
                         },
-                        error: function() {
+                        error: function(xhr, status, error) {
+                            console.error('Delete request failed:', xhr.responseText, status, error);
                             iziToast.error({
                                 title: 'Error',
                                 message: 'An error occurred while deleting the property.',
@@ -1729,6 +1739,8 @@ function handleBuyRequest(id, action) {
                             });
                         }
                     });
+                } else {
+                    console.log('User cancelled deletion');
                 }
             });
 
