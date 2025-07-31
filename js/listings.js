@@ -20,12 +20,27 @@ const fetchProperties = async () => {
   });
   const data = await res.json();
   if (data.status === "success") {
-    const savedProperties =
-      JSON.parse(localStorage.getItem("savedProperties")) || [];
+    // Get saved properties from database for current user
+    const savedPropertiesRes = await fetch(
+      "backend/fetch-user-saved-properties.php",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    let savedPropertyIds = [];
+    if (savedPropertiesRes.ok) {
+      const savedData = await savedPropertiesRes.json();
+      if (savedData.status === "success") {
+        savedPropertyIds = savedData.properties.map((p) => p.id);
+      }
+    }
+
     properties = data.properties.map((p) => ({
       ...p,
       image: p.images && p.images.length > 0 ? p.images[0] : "placeholder.jpg",
-      isSaved: savedProperties.some((sp) => sp.id === p.id),
+      isSaved: savedPropertyIds.includes(p.id),
     }));
     renderProperties();
   }
@@ -174,32 +189,23 @@ async function handleBookmarkClick(btn, property) {
 
     const data = await response.json();
     if (data.status === "success") {
-      let savedProperties =
-        JSON.parse(localStorage.getItem("savedProperties")) || [];
-
-      if (isSaved) {
-        // Removing from saved
-        savedProperties = savedProperties.filter((p) => p.id !== property.id);
-        iziToast.info({
-          title: "Removed",
-          message: "Property removed from saved.",
-          position: "topRight",
-        });
-      } else {
-        // Adding to saved
-        savedProperties.push(property);
+      if (data.is_saved === 1) {
+        // Property is now saved
+        icon.classList.replace("far", "fas");
         iziToast.success({
           title: "Saved",
           message: "Property saved successfully.",
           position: "topRight",
         });
+      } else {
+        // Property is now unsaved
+        icon.classList.replace("fas", "far");
+        iziToast.info({
+          title: "Removed",
+          message: "Property removed from saved.",
+          position: "topRight",
+        });
       }
-
-      localStorage.setItem("savedProperties", JSON.stringify(savedProperties));
-
-      // Toggle icon
-      icon.classList.toggle("fas", !isSaved);
-      icon.classList.toggle("far", isSaved);
     } else {
       iziToast.error({
         title: "Error",

@@ -27,80 +27,79 @@ const handleVideoSection = () => {
 };
 
 // Handle Bookmark/Save functionality
-const handleBookmark = () => {
+const handleBookmark = async () => {
   const bookmarkBtn = document.getElementById("bookmarkBtn");
   const bookmarkIcon = bookmarkBtn.querySelector("i");
   const propertyId = new URLSearchParams(window.location.search).get("id");
 
-  // Check if property is already saved
-  const savedProperties =
-    JSON.parse(localStorage.getItem("savedProperties")) || [];
-  const isSaved = savedProperties.some((p) => p.id === propertyId);
-
-  // Update initial button state
-  if (isSaved) {
-    bookmarkIcon.classList.replace("far", "fas");
-    bookmarkBtn.classList.remove("btn-primary");
-    bookmarkBtn.classList.add("btn-primary");
+  if (!propertyId) {
+    console.error("No property ID found in URL");
+    return;
   }
 
-  bookmarkBtn.addEventListener("click", () => {
-    const isSaved = bookmarkIcon.classList.contains("fas");
-    const savedProperties =
-      JSON.parse(localStorage.getItem("savedProperties")) || [];
+  // Check if property is already saved in database
+  try {
+    const response = await fetch("backend/fetch-save-properties.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        property_id: parseInt(propertyId),
+      }),
+    });
 
+    const data = await response.json();
+    const isSaved = data.status === "success" && data.is_saved === 1;
+
+    // Update initial button state based on database
     if (isSaved) {
-      // Remove from saved properties
-      const updatedProperties = savedProperties.filter(
-        (p) => p.id !== propertyId
-      );
-      localStorage.setItem(
-        "savedProperties",
-        JSON.stringify(updatedProperties)
-      );
-
-      // Update UI
-      bookmarkIcon.classList.replace("fas", "far");
-      bookmarkBtn.classList.remove("btn-primary");
-      bookmarkBtn.classList.add("btn-primary");
-      showToast("Property removed from saved properties");
-    } else {
-      // Get current property data
-      const propertyData = {
-        id: propertyId,
-        title: document.querySelector(".property-title").textContent,
-        location: document
-          .querySelector(".property-location")
-          .textContent.trim(),
-        price: parseFloat(
-          document
-            .querySelector(".property-price")
-            .textContent.replace(/[^0-9.]/g, "")
-        ),
-        bedrooms:
-          document
-            .querySelector(".property-features .bedrooms")
-            ?.textContent.trim() || "",
-        size:
-          document
-            .querySelector(".property-features .size")
-            ?.textContent.trim() || "",
-        type:
-          document
-            .querySelector(".property-features .type")
-            ?.textContent.trim() || "",
-        image: document.querySelector(".property-gallery img")?.src || "",
-      };
-
-      // Add to saved properties
-      savedProperties.push(propertyData);
-      localStorage.setItem("savedProperties", JSON.stringify(savedProperties));
-
-      // Update UI
       bookmarkIcon.classList.replace("far", "fas");
-      bookmarkBtn.classList.remove("btn-primary");
-      bookmarkBtn.classList.add("btn-primary");
-      showToast("Property saved successfully");
+    } else {
+      bookmarkIcon.classList.replace("fas", "far");
+    }
+  } catch (err) {
+    console.error("Failed to check save status:", err);
+    // Keep default state (outline bookmark)
+    bookmarkIcon.classList.replace("fas", "far");
+  }
+
+  bookmarkBtn.addEventListener("click", async () => {
+    const isSaved = bookmarkIcon.classList.contains("fas");
+
+    try {
+      const response = await fetch("backend/save-property.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          property_id: parseInt(propertyId),
+          action: isSaved ? "remove" : "add",
+        }),
+      });
+
+      const data = await response.json();
+
+      // Check if user is not logged in
+      if (data.status === "error" && data.message === "User not logged in") {
+        showToast("Please login to save properties", "error");
+        return;
+      }
+
+      if (data.status === "success") {
+        // Update UI based on backend response
+        if (data.is_saved === 1) {
+          // Property is now saved
+          bookmarkIcon.classList.replace("far", "fas");
+          showToast("Property saved successfully");
+        } else {
+          // Property is now unsaved
+          bookmarkIcon.classList.replace("fas", "far");
+          showToast("Property removed from saved properties");
+        }
+      } else {
+        showToast(data.message || "Failed to update saved property", "error");
+      }
+    } catch (err) {
+      console.error("Failed to toggle save:", err);
+      showToast("An error occurred while saving the property", "error");
     }
   });
 };
@@ -210,11 +209,26 @@ const handleContactForm = () => {
   });
 };
 
+// Toast notification function
+const showToast = (message, type = "success") => {
+  // Check if iziToast is available (from listings page)
+  if (typeof iziToast !== "undefined") {
+    iziToast[type]({
+      title: type === "success" ? "Success" : "Error",
+      message: message,
+      position: "topRight",
+    });
+  } else {
+    // Fallback to alert if iziToast is not available
+    alert(message);
+  }
+};
+
 // Initialize all functionality when DOM is loaded
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   initializeGallery();
   handleVideoSection();
-  handleBookmark();
+  await handleBookmark();
   handleReport();
   handleContactForm();
 

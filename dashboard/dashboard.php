@@ -1564,7 +1564,10 @@ function handleBuyRequest(id, action) {
             // fetch saved properties
             async function fetchSavedProperties() {
                 try {
-                    const res = await fetch('../backend/fetch-save-properties.php');
+                    const res = await fetch('../backend/fetch-user-saved-properties.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
                     console.log('Raw fetch response:', res);
 
                     if (!res.ok) {
@@ -1572,7 +1575,9 @@ function handleBuyRequest(id, action) {
                     }
 
                     const data = await res.json();
-                    console.log('fetch-save-properties response:', data);
+                    console.log('fetch-user-saved-properties response:', data);
+                    console.log('Response status:', data.status);
+                    console.log('Properties array:', data.properties);
 
                     const savedSection = document.querySelector('#saved .row');
 

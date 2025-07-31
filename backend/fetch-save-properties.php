@@ -1,32 +1,33 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-require_once 'db.php'; // DB connection as $conn
+require_once 'db.php';
 
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['status' => 'error', 'message' => 'User not logged in']);
     exit;
 }
 
+$data = json_decode(file_get_contents('php://input'), true);
+$propertyId = intval($data['property_id'] ?? 0);
 $userId = $_SESSION['user_id'];
 
-$query = "SELECT p.id, p.title, p.price, p.type, p.area, p.unit, p.location, p.images_json
-          FROM saved_properties sp
-          JOIN properties p ON p.id = sp.property_id
-          WHERE sp.user_id = ?
-          ORDER BY sp.saved_at DESC";
-
-$stmt = $conn->prepare($query);
-$stmt->bind_param('i', $userId);
-$stmt->execute();
-$result = $stmt->get_result();
-
-$properties = [];
-while ($row = $result->fetch_assoc()) {
-    $row['images'] = json_decode($row['images_json'] ?? '[]', true);
-    $properties[] = $row;
+if ($propertyId <= 0) {
+    echo json_encode(['status' => 'error', 'message' => 'Invalid property ID']);
+    exit;
 }
 
-echo json_encode(['status' => 'success', 'properties' => $properties]);
+// Check if property is saved by this user
+$stmt = $conn->prepare("SELECT id FROM saved_properties WHERE user_id = ? AND property_id = ?");
+$stmt->bind_param('ii', $userId, $propertyId);
+$stmt->execute();
+$result = $stmt->get_result();
+$saved = $result->fetch_assoc();
+$stmt->close();
 
-exit;
+if ($saved) {
+    echo json_encode(['status' => 'success', 'is_saved' => 1, 'message' => 'Property is saved']);
+} else {
+    echo json_encode(['status' => 'success', 'is_saved' => 0, 'message' => 'Property is not saved']);
+}
+?>
