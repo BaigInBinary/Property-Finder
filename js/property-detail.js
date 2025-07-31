@@ -163,7 +163,7 @@ const handleReport = () => {
 const handleContactForm = () => {
   const form = document.getElementById("contactForm");
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     if (!form.checkValidity()) {
@@ -178,6 +178,7 @@ const handleContactForm = () => {
       email: document.getElementById("email").value,
       phone: document.getElementById("phone").value,
       message: document.getElementById("message").value,
+      property_id: new URLSearchParams(window.location.search).get("id"),
     };
 
     // Show loading state
@@ -187,25 +188,64 @@ const handleContactForm = () => {
       '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
     submitBtn.disabled = true;
 
-    // Simulate API call
-    setTimeout(() => {
-      // Reset form
-      form.reset();
-      form.classList.remove("was-validated");
+    try {
+      // Send to backend
+      const response = await fetch("backend/contact-agent.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-      // Show success message
+      const data = await response.json();
+
+      if (data.status === "success") {
+        // Reset form
+        form.reset();
+        form.classList.remove("was-validated");
+
+        // Show success message
+        const alertHtml = `
+          <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            ${data.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        `;
+        form.insertAdjacentHTML("beforebegin", alertHtml);
+
+        // Show toast notification
+        showToast("Message sent successfully!", "success");
+      } else {
+        // Show error message
+        const alertHtml = `
+          <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            ${data.message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        `;
+        form.insertAdjacentHTML("beforebegin", alertHtml);
+
+        // Show toast notification
+        showToast(data.message, "error");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+
+      // Show error message
       const alertHtml = `
-                <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
-                    Your message has been sent successfully!
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+          An error occurred while sending your message. Please try again.
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      `;
       form.insertAdjacentHTML("beforebegin", alertHtml);
 
+      // Show toast notification
+      showToast("An error occurred while sending your message", "error");
+    } finally {
       // Reset button
       submitBtn.innerHTML = originalBtnText;
       submitBtn.disabled = false;
-    }, 1500);
+    }
   });
 };
 
