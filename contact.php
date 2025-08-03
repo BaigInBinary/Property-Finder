@@ -75,7 +75,7 @@
 
                             <!-- Map -->
                             <div class="map-wrapper mt-5">
-                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3318.8755993177407!2d73.08400931513811!3d33.71439148070458!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38dfbef8c1c9679b%3A0x6849f36a1e0f6d9d!2sIslamabad%2C%20Pakistan!5e0!3m2!1sen!2s!4v1645000000000!5m2!1sen!2s" width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3401.1234567890123!2d73.08400931513811!3d31.41839148070458!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x392269b19d4e1b8f%3A0x6849f36a1e0f6d9d!2sFaisalabad%2C%20Pakistan!5e0!3m2!1sen!2s!4v1645000000000!5m2!1sen!2s" width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                             </div>
                         </div>
                     </div>
