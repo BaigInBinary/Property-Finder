@@ -96,9 +96,9 @@ try {
     
     // Delete related records first (in order of dependencies)
     
-    // 1. Delete property reviews
-    $deleteReviewsStmt = $conn->prepare("DELETE FROM property_reviews WHERE property_id IN (SELECT id FROM properties WHERE user_id = ?)");
-    $deleteReviewsStmt->bind_param("i", $targetUserId);
+    // 1. Delete property reviews (both as property owner and as reviewer)
+    $deleteReviewsStmt = $conn->prepare("DELETE FROM property_reviews WHERE property_id IN (SELECT id FROM properties WHERE user_id = ?) OR user_id = ?");
+    $deleteReviewsStmt->bind_param("ii", $targetUserId, $targetUserId);
     $deleteReviewsStmt->execute();
     $deleteReviewsStmt->close();
     
