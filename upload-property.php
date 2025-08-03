@@ -185,9 +185,13 @@
                         <!-- Iframe -->
                         <div class="mb-3">
                             <label for="mapLink" class="form-label required">Location on Map</label>
-                            <input type="text" class="form-control" id="mapLink" name="link" placeholder="Enter map iframe link" required>
-                            <div class="invalid-feedback">
-                                Please provide a valid map link (URL).
+                            <input type="text" class="form-control" id="mapLink" name="link" placeholder="Enter Google Maps embed iframe link" required>
+                            <div class="invalid-feedback" id="mapLinkError">
+                                Please provide a valid Google Maps embed iframe link.
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i> 
+                                Paste the embed iframe code from Google Maps. Example: &lt;iframe src="https://www.google.com/maps/embed?..."&gt;
                             </div>
                         </div>
 
@@ -286,6 +290,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.setCustomValidity('');
             }
         });
+    }
+
+    // Map link validation
+    const mapLinkInput = document.getElementById('mapLink');
+    if (mapLinkInput) {
+        mapLinkInput.addEventListener('input', function(e) {
+            validateMapLink(this.value);
+        });
+        
+        mapLinkInput.addEventListener('blur', function(e) {
+            validateMapLink(this.value);
+        });
+        
+        function validateMapLink(value) {
+            const errorDiv = document.getElementById('mapLinkError');
+            
+            if (!value.trim()) {
+                mapLinkInput.setCustomValidity('Map link is required');
+                errorDiv.textContent = 'Map link is required';
+                return false;
+            }
+            
+            // Check if it's a valid iframe embed link
+            const iframePattern = /<iframe[^>]*src=["'](https?:\/\/www\.google\.com\/maps\/embed[^"']*)["'][^>]*>/i;
+            const googleMapsEmbedPattern = /https?:\/\/www\.google\.com\/maps\/embed/i;
+            
+            if (!iframePattern.test(value) && !googleMapsEmbedPattern.test(value)) {
+                mapLinkInput.setCustomValidity('Please provide a valid Google Maps embed iframe link');
+                errorDiv.textContent = 'Please provide a valid Google Maps embed iframe link. It should contain "google.com/maps/embed"';
+                return false;
+            }
+            
+            // Additional validation for iframe structure
+            if (value.includes('<iframe') && !value.includes('src=')) {
+                mapLinkInput.setCustomValidity('Invalid iframe structure. Please include the src attribute');
+                errorDiv.textContent = 'Invalid iframe structure. Please include the src attribute';
+                return false;
+            }
+            
+            mapLinkInput.setCustomValidity('');
+            errorDiv.textContent = 'Please provide a valid Google Maps embed iframe link.';
+            return true;
+        }
     }
 
     const cnicInput = document.getElementById('cnicNumber');

@@ -38,6 +38,24 @@ if ($price < 10000 || strlen((string)$price) < 5) {
     exit;
 }
 
+// Validate map link - must be a valid Google Maps embed iframe
+if (!empty($link)) {
+    // Check if it's a valid iframe embed link
+    $iframePattern = '/<iframe[^>]*src=["\'](https?:\/\/www\.google\.com\/maps\/embed[^"\']*)["\'][^>]*>/i';
+    $googleMapsEmbedPattern = '/https?:\/\/www\.google\.com\/maps\/embed/i';
+    
+    if (!preg_match($iframePattern, $link) && !preg_match($googleMapsEmbedPattern, $link)) {
+        echo json_encode(['status' => 'error', 'message' => 'Please provide a valid Google Maps embed iframe link. It should contain "google.com/maps/embed"']);
+        exit;
+    }
+    
+    // Additional validation for iframe structure
+    if (strpos($link, '<iframe') !== false && strpos($link, 'src=') === false) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid iframe structure. Please include the src attribute']);
+        exit;
+    }
+}
+
 // File upload paths
 $propertyDir = 'uploads/property/';
 $cnicDir     = 'uploads/cnic/';
