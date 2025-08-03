@@ -4,10 +4,12 @@ Array
         p.id, p.title, p.price, p.type, p.area, p.location, p.city, 
         p.images_json, u.name AS user_name 
     FROM properties p 
-    JOIN users u ON p.user_id = u.id
+    JOIN users u ON p.user_id = u.id 
+    WHERE 1=1  AND p.type = ?
     [params] => Array
         (
+            [0] => House
         )
 
-    [types] => 
+    [types] => s
 )
