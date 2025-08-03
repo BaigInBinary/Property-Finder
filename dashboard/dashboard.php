@@ -1243,6 +1243,18 @@ function handleBuyRequest(id, action) {
                             </select>
                         </div>
 
+                        <div class="mb-3">
+                            <label>Location on Map</label>
+                            <input type="text" name="link" id="editLink" class="form-control" placeholder="Enter Google Maps embed iframe link">
+                            <div class="invalid-feedback" id="editLinkError">
+                                Please provide a valid Google Maps embed iframe link.
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i> 
+                                Paste the embed iframe code from Google Maps. Example: &lt;iframe src="https://www.google.com/maps/embed?..."&gt;
+                            </div>
+                        </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -1268,10 +1280,54 @@ function handleBuyRequest(id, action) {
             $('#editArea').val(property.area);
             $('#editUnit').val(property.unit);
             $('#editType').val(property.type);
+            $('#editLink').val(property.link);
 
 
             $('#editPropertyModal').modal('show');
         });
+
+        // Map link validation for edit modal
+        $('#editLink').on('input blur', function() {
+            validateEditMapLink(this.value);
+        });
+
+        function validateEditMapLink(value) {
+            const errorDiv = document.getElementById('editLinkError');
+            
+            // If empty, it's valid (optional field)
+            if (!value.trim()) {
+                $(this).removeClass('is-invalid');
+                errorDiv.textContent = 'Please provide a valid Google Maps embed iframe link.';
+                return true;
+            }
+            
+            // Check if it's a valid iframe embed link
+            const iframePattern = /<iframe[^>]*src=["'](https?:\/\/www\.google\.com\/maps\/embed[^"']*)["'][^>]*>/i;
+            
+            if (!iframePattern.test(value)) {
+                $(this).addClass('is-invalid');
+                errorDiv.textContent = 'Please provide the complete iframe HTML code from Google Maps embed, not just the URL.';
+                return false;
+            }
+            
+            // Additional validation for iframe structure
+            if (value.includes('<iframe') && !value.includes('src=')) {
+                $(this).addClass('is-invalid');
+                errorDiv.textContent = 'Invalid iframe structure. Please include the src attribute';
+                return false;
+            }
+            
+            // Ensure it has proper iframe closing tag
+            if (value.includes('<iframe') && !value.includes('</iframe>')) {
+                $(this).addClass('is-invalid');
+                errorDiv.textContent = 'Invalid iframe structure. Please include the complete iframe HTML with closing tag';
+                return false;
+            }
+            
+            $(this).removeClass('is-invalid');
+            errorDiv.textContent = 'Please provide a valid Google Maps embed iframe link.';
+            return true;
+        }
     </script>
 
     <script>

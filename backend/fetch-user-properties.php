@@ -14,7 +14,7 @@ if (!$userId) {
 
 try {
     // Prepare statement to prevent SQL injection
-    $stmt = $conn->prepare("SELECT id, title, price, city, area, unit, images_json, type FROM properties WHERE user_id = ?");
+    $stmt = $conn->prepare("SELECT id, title, price, city, area, unit, images_json, link, type FROM properties WHERE user_id = ?");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     
