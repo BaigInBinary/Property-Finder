@@ -1283,9 +1283,9 @@ $stmt->close();
                                 <label class="form-label">Status</label>
                                 <select class="form-select" id="statusFilter">
                                     <option value="">All Status</option>
-                                    <option value="available">Available</option>
-                                    <option value="sold">Sold</option>
+                                    <option value="active">Active</option>
                                     <option value="pending">Pending</option>
+                                    <option value="inactive">Inactive</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -1380,7 +1380,6 @@ $stmt->close();
                             while ($property = $propertiesResult->fetch_assoc()):
                             ?>
                             <tr class="property-row" 
-                                data-id="<?php echo $property['id']; ?>"
                                 data-status="<?php echo htmlspecialchars($property['status']); ?>"
                                 data-city="<?php echo htmlspecialchars($property['city']); ?>"
                                 data-type="<?php echo htmlspecialchars($property['type']); ?>"
@@ -2305,105 +2304,33 @@ function updatePropertyRow(propertyId, newListingStatus) {
 
 function toggleListingStatus(id, currentListing) {
     const newListing = currentListing === 'approved' ? 'rejected' : 'approved';
-    const action = currentListing === 'approved' ? 'reject' : 'approve';
+    const action = currentListing === 'approved' ? 'hide' : 'show';
     
     if (!confirm('Are you sure you want to ' + action + ' this property?')) return;
+    
+    showLoading(action.charAt(0).toUpperCase() + action.slice(1) + ' property...');
+    $('.btn').prop('disabled', true);
     
     $.ajax({
         url: '../backend/toggle-listing-status.php',
         method: 'POST',
-        data: { id: id, action: action },
+        data: { property_id: id, listing: newListing },
         dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                iziToast.success({
-                    title: 'Success',
-                    message: response.message,
-                    position: 'topRight'
-                });
+        success: function(res) {
+            hideLoading();
+            $('.btn').prop('disabled', false);
+            
+            if(res.success) {
                 updatePropertyRow(id, newListing);
+                alert(res.message || 'Property visibility updated successfully.');
             } else {
-                iziToast.error({
-                    title: 'Error',
-                    message: response.message || 'Failed to update listing status.',
-                    position: 'topRight'
-                });
+                alert(res.message || 'Failed to update property visibility.');
             }
         },
-        error: function() {
-            iziToast.error({
-                title: 'Error',
-                message: 'Error updating listing status. Please try again.',
-                position: 'topRight'
-            });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
+        error: function() { 
+            hideLoading();
+            $('.btn').prop('disabled', false);
+            alert('Error updating property visibility.'); 
         }
     });
 }
@@ -2802,11 +2729,7 @@ $(document).ready(function() {
                                 position: 'topRight'
                             });
                             // Remove the row from the table
-                            $(`.property-row[data-id="${id}"]`).fadeOut(400, function() {
-                                $(this).remove();
-                                // Update stats immediately after row removal
-                                updatePropertyStats();
-                            });
+                            $(`tr[data-property-id="${id}"]`).remove();
                         } else {
                             iziToast.error({
                                 title: 'Error',
@@ -2831,7 +2754,7 @@ $(document).ready(function() {
                 $.ajax({
                     url: '../backend/delete-user.php',
                     method: 'POST',
-                    data: { id: userId },
+                    data: { user_id: userId },
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
@@ -2841,11 +2764,7 @@ $(document).ready(function() {
                                 position: 'topRight'
                             });
                             // Remove the row from the table
-                            $(`.user-row[data-id="${userId}"]`).fadeOut(400, function() {
-                                $(this).remove();
-                                // Update stats immediately after row removal
-                                updateUserStats();
-                            });
+                            $(`tr[data-user-id="${userId}"]`).remove();
                         } else {
                             iziToast.error({
                                 title: 'Error',
@@ -2869,7 +2788,7 @@ $(document).ready(function() {
         function approveProperty(id) {
             if (confirm('Are you sure you want to approve this property?')) {
                 $.ajax({
-                    url: '../backend/approve-property.php?v=1754257249',
+                    url: '../backend/approve-property.php',
                     method: 'POST',
                     data: { 
                         id: id, 
@@ -2906,7 +2825,7 @@ $(document).ready(function() {
         function rejectProperty(id) {
             if (confirm('Are you sure you want to reject this property?')) {
                 $.ajax({
-                    url: '../backend/approve-property.php?v=1754257249',
+                    url: '../backend/approve-property.php',
                     method: 'POST',
                     data: { 
                         id: id, 
@@ -2960,7 +2879,7 @@ $(document).ready(function() {
                                 message: response.message,
                                 position: 'topRight'
                             });
-                            updateApprovalRow(id, newListingStatus);
+                            updatePropertyRow(id, newListingStatus);
                         } else {
                             iziToast.error({
                                 title: 'Error',
@@ -2981,7 +2900,7 @@ $(document).ready(function() {
         }
 
         function updatePropertyRow(propertyId, newListingStatus) {
-            const row = $(`.property-row[data-id="${propertyId}"]`);
+            const row = $(`tr[data-property-id="${propertyId}"]`);
             if (row.length) {
                 // Update status badge
                 const statusCell = row.find('.status-badge');
@@ -3085,7 +3004,7 @@ $(document).ready(function() {
         function approveProperty(id) {
             if (confirm('Are you sure you want to approve this property?')) {
                 $.ajax({
-                    url: '../backend/approve-property.php?v=1754257249',
+                    url: '../backend/approve-property.php',
                     method: 'POST',
                     data: { 
                         id: id, 
@@ -3122,7 +3041,7 @@ $(document).ready(function() {
         function rejectProperty(id) {
             if (confirm('Are you sure you want to reject this property?')) {
                 $.ajax({
-                    url: '../backend/approve-property.php?v=1754257249',
+                    url: '../backend/approve-property.php',
                     method: 'POST',
                     data: { 
                         id: id, 
@@ -3176,7 +3095,7 @@ $(document).ready(function() {
                                 message: response.message,
                                 position: 'topRight'
                             });
-                            updateApprovalRow(id, newListingStatus);
+                            updatePropertyRow(id, newListingStatus);
                         } else {
                             iziToast.error({
                                 title: 'Error',
@@ -3197,7 +3116,7 @@ $(document).ready(function() {
         }
 
         function updatePropertyRow(propertyId, newListingStatus) {
-            const row = $(`.property-row[data-id="${propertyId}"]`);
+            const row = $(`tr[data-property-id="${propertyId}"]`);
             if (row.length) {
                 // Update status badge
                 const statusCell = row.find('.status-badge');
@@ -3365,164 +3284,6 @@ $(document).ready(function() {
                 position: 'topRight'
             });
         }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
-        }
-        
-        
-        function updatePropertyStats() {
-            // Update the stats cards with new counts
-            const totalProperties = $(".property-row").length;
-            const activeProperties = $(".property-row[data-status=\"active\"]").length;
-            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
-            
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
-            
-            // Update stats cards if they exist
-            $(".stats-card h3").each(function() {
-                const cardText = $(this).next("p").text().toLowerCase();
-                if (cardText.includes("total properties")) {
-                    $(this).text(totalProperties);
-                } else if (cardText.includes("active properties")) {
-                    $(this).text(activeProperties);
-                } else if (cardText.includes("pending properties")) {
-                    $(this).text(pendingProperties);
-                }
-            });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
-        }
 
         function viewUserProperties(userId) {
             iziToast.info({
@@ -3530,164 +3291,6 @@ $(document).ready(function() {
                 message: 'Viewing properties for user ID: ' + userId,
                 position: 'topRight'
             });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
-        }
-        
-        
-        function updatePropertyStats() {
-            // Update the stats cards with new counts
-            const totalProperties = $(".property-row").length;
-            const activeProperties = $(".property-row[data-status=\"active\"]").length;
-            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
-            
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
-            
-            // Update stats cards if they exist
-            $(".stats-card h3").each(function() {
-                const cardText = $(this).next("p").text().toLowerCase();
-                if (cardText.includes("total properties")) {
-                    $(this).text(totalProperties);
-                } else if (cardText.includes("active properties")) {
-                    $(this).text(activeProperties);
-                } else if (cardText.includes("pending properties")) {
-                    $(this).text(pendingProperties);
-                }
-            });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
         }
 
         function toggleUserRole(userId, currentRole) {
@@ -3756,164 +3359,6 @@ $(document).ready(function() {
                 }
             });
         }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
-        }
-        
-        
-        function updatePropertyStats() {
-            // Update the stats cards with new counts
-            const totalProperties = $(".property-row").length;
-            const activeProperties = $(".property-row[data-status=\"active\"]").length;
-            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
-            
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
-            
-            // Update stats cards if they exist
-            $(".stats-card h3").each(function() {
-                const cardText = $(this).next("p").text().toLowerCase();
-                if (cardText.includes("total properties")) {
-                    $(this).text(totalProperties);
-                } else if (cardText.includes("active properties")) {
-                    $(this).text(activeProperties);
-                } else if (cardText.includes("pending properties")) {
-                    $(this).text(pendingProperties);
-                }
-            });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
-        }
 
         // Transaction management functions
         function viewTransactionDetails(transactionId) {
@@ -3922,164 +3367,6 @@ $(document).ready(function() {
                 message: 'Transaction details feature coming soon!',
                 position: 'topRight'
             });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
-        }
-        
-        
-        function updatePropertyStats() {
-            // Update the stats cards with new counts
-            const totalProperties = $(".property-row").length;
-            const activeProperties = $(".property-row[data-status=\"active\"]").length;
-            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
-            
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
-            
-            // Update stats cards if they exist
-            $(".stats-card h3").each(function() {
-                const cardText = $(this).next("p").text().toLowerCase();
-                if (cardText.includes("total properties")) {
-                    $(this).text(totalProperties);
-                } else if (cardText.includes("active properties")) {
-                    $(this).text(activeProperties);
-                } else if (cardText.includes("pending properties")) {
-                    $(this).text(pendingProperties);
-                }
-            });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
         }
 
         function viewPropertyDetails(propertyId) {
@@ -4496,164 +3783,6 @@ $(document).ready(function() {
                 position: 'topRight'
             });
         }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
-        }
-        
-        
-        function updatePropertyStats() {
-            // Update the stats cards with new counts
-            const totalProperties = $(".property-row").length;
-            const activeProperties = $(".property-row[data-status=\"active\"]").length;
-            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
-            
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
-            
-            // Update stats cards if they exist
-            $(".stats-card h3").each(function() {
-                const cardText = $(this).next("p").text().toLowerCase();
-                if (cardText.includes("total properties")) {
-                    $(this).text(totalProperties);
-                } else if (cardText.includes("active properties")) {
-                    $(this).text(activeProperties);
-                } else if (cardText.includes("pending properties")) {
-                    $(this).text(pendingProperties);
-                }
-            });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
-        }
 
         function viewUserProperties(userId) {
             // Filter properties table to show only this user's properties
@@ -4770,164 +3899,6 @@ $(document).ready(function() {
                 }
             });
         }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
-        }
-        
-        
-        function updatePropertyStats() {
-            // Update the stats cards with new counts
-            const totalProperties = $(".property-row").length;
-            const activeProperties = $(".property-row[data-status=\"active\"]").length;
-            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
-            
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
-            
-            // Update stats cards if they exist
-            $(".stats-card h3").each(function() {
-                const cardText = $(this).next("p").text().toLowerCase();
-                if (cardText.includes("total properties")) {
-                    $(this).text(totalProperties);
-                } else if (cardText.includes("active properties")) {
-                    $(this).text(activeProperties);
-                } else if (cardText.includes("pending properties")) {
-                    $(this).text(pendingProperties);
-                }
-            });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
-        }
 
         // Transaction Management Functions (already defined above)
 
@@ -4937,164 +3908,6 @@ $(document).ready(function() {
                 message: 'Transaction details feature coming soon!',
                 position: 'topRight'
             });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
-        }
-        
-        
-        function updatePropertyStats() {
-            // Update the stats cards with new counts
-            const totalProperties = $(".property-row").length;
-            const activeProperties = $(".property-row[data-status=\"active\"]").length;
-            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
-            
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
-            
-            // Update stats cards if they exist
-            $(".stats-card h3").each(function() {
-                const cardText = $(this).next("p").text().toLowerCase();
-                if (cardText.includes("total properties")) {
-                    $(this).text(totalProperties);
-                } else if (cardText.includes("active properties")) {
-                    $(this).text(activeProperties);
-                } else if (cardText.includes("pending properties")) {
-                    $(this).text(pendingProperties);
-                }
-            });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
         }
 
         function viewPropertyDetails(propertyId) {
@@ -5182,164 +3995,6 @@ $(document).ready(function() {
                 // Move cursor to end of inserted text
                 this.selectionStart = this.selectionEnd = start + filtered.length;
             });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
-        }
-        
-        
-        function updatePropertyStats() {
-            // Update the stats cards with new counts
-            const totalProperties = $(".property-row").length;
-            const activeProperties = $(".property-row[data-status=\"active\"]").length;
-            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
-            
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
-            
-            // Update stats cards if they exist
-            $(".stats-card h3").each(function() {
-                const cardText = $(this).next("p").text().toLowerCase();
-                if (cardText.includes("total properties")) {
-                    $(this).text(totalProperties);
-                } else if (cardText.includes("active properties")) {
-                    $(this).text(activeProperties);
-                } else if (cardText.includes("pending properties")) {
-                    $(this).text(pendingProperties);
-                }
-            });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
         });
 
         $(document).ready(function() {
@@ -5900,164 +4555,6 @@ $(document).ready(function() {
                     });
                 }
             });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
-        }
-        
-        
-        function updatePropertyStats() {
-            // Update the stats cards with new counts
-            const totalProperties = $(".property-row").length;
-            const activeProperties = $(".property-row[data-status=\"active\"]").length;
-            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
-            
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
-            
-            // Update stats cards if they exist
-            $(".stats-card h3").each(function() {
-                const cardText = $(this).next("p").text().toLowerCase();
-                if (cardText.includes("total properties")) {
-                    $(this).text(totalProperties);
-                } else if (cardText.includes("active properties")) {
-                    $(this).text(activeProperties);
-                } else if (cardText.includes("pending properties")) {
-                    $(this).text(pendingProperties);
-                }
-            });
-        }
-        
-        
-        function updateApprovalRow(propertyId, newListingStatus) {
-            const row = $(`.approval-row[data-id="${propertyId}"]`);
-            if (row.length) {
-                // Update the status badge
-                const statusBadge = row.find("td:nth-child(8) .badge");
-                if (statusBadge.length) {
-                    statusBadge.removeClass("bg-success bg-danger bg-warning")
-                        .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-                }
-                
-                // Update the action buttons
-                const actionButtons = row.find("td:nth-child(10) .btn-group");
-                if (actionButtons.length) {
-                    if (newListingStatus === "approved") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
-                                    title="Hide Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    } else if (newListingStatus === "rejected") {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
-                                    title="Show Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        `);
-                    } else {
-                        actionButtons.html(`
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="viewPropertyForApproval(${propertyId})"
-                                    title="View Details">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" 
-                                    onclick="approveProperty(${propertyId})"
-                                    title="Approve Property">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="rejectProperty(${propertyId})"
-                                    title="Reject Property">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `);
-                    }
-                }
-                
-                // Update the data attribute
-                row.attr("data-listing", newListingStatus);
-            }
         });
 
         // Password visibility toggle event listeners
@@ -6196,7 +4693,7 @@ $(document).ready(function() {
         function approveProperty(id) {
             if (confirm('Are you sure you want to approve this property?')) {
                 $.ajax({
-                    url: '../backend/approve-property.php?v=1754257249',
+                    url: '../backend/approve-property.php',
                     method: 'POST',
                     data: { 
                         id: id, 
@@ -6236,7 +4733,7 @@ $(document).ready(function() {
         function rejectProperty(id) {
             if (confirm('Are you sure you want to reject this property?')) {
                 $.ajax({
-                    url: '../backend/approve-property.php?v=1754257249',
+                    url: '../backend/approve-property.php',
                     method: 'POST',
                     data: { 
                         id: id, 
@@ -6279,7 +4776,7 @@ $(document).ready(function() {
             
             if (confirm(`Are you sure you want to ${action} this property?`)) {
                 $.ajax({
-                    url: '../backend/approve-property.php?v=1754257249',
+                    url: '../backend/approve-property.php',
                     method: 'POST',
                     data: { 
                         id: id, 

@@ -23,12 +23,12 @@ if (!$user || strtolower($user['role']) !== 'admin') {
 }
 
 // Check if required parameters are provided
-if (!isset($_POST['property_id']) || !isset($_POST['action'])) {
+if (!isset($_POST['id']) || !isset($_POST['action'])) {
     echo json_encode(['success' => false, 'message' => 'Missing required parameters']);
     exit;
 }
 
-$propertyId = intval($_POST['property_id']);
+$propertyId = intval($_POST['id']);
 $action = $_POST['action'];
 $reason = isset($_POST['reason']) ? $_POST['reason'] : '';
 

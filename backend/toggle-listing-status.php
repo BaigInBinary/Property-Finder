@@ -23,17 +23,26 @@ if (!$user || strtolower($user['role']) !== 'admin') {
 }
 
 // Check if required parameters are provided
-if (!isset($_POST['property_id']) || !isset($_POST['listing'])) {
+if (!isset($_POST['id']) || !isset($_POST['action'])) {
     echo json_encode(['success' => false, 'message' => 'Missing required parameters']);
     exit;
 }
 
-$propertyId = intval($_POST['property_id']);
-$newListing = $_POST['listing'];
+$propertyId = intval($_POST['id']);
+$action = $_POST['action'];
+
+// Determine new listing status based on action
+$newListing = ($action === 'approve') ? 'approved' : 'rejected';
 
 // Validate property ID
 if ($propertyId <= 0) {
     echo json_encode(['success' => false, 'message' => 'Invalid property ID']);
+    exit;
+}
+
+// Validate action
+if (!in_array($action, ['approve', 'reject'])) {
+    echo json_encode(['success' => false, 'message' => 'Invalid action']);
     exit;
 }
 
@@ -61,7 +70,6 @@ if (!$property) {
 
 // Update property listing status
 $currentTime = date('Y-m-d H:i:s');
-$action = $newListing === 'approved' ? 'shown' : 'hidden';
 
 $stmt = $conn->prepare("UPDATE properties SET listing = ?, updated_at = ? WHERE id = ?");
 $stmt->bind_param("ssi", $newListing, $currentTime, $propertyId);
@@ -69,7 +77,7 @@ $stmt->bind_param("ssi", $newListing, $currentTime, $propertyId);
 if ($stmt->execute()) {
     echo json_encode([
         'success' => true, 
-        'message' => 'Property ' . $action . ' successfully',
+        'message' => 'Property ' . $action . 'd successfully',
         'property_id' => $propertyId,
         'new_listing_status' => $newListing
     ]);

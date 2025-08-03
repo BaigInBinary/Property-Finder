@@ -56,21 +56,8 @@ document.addEventListener("DOMContentLoaded", function () {
   // Always show admin panel for now (you can add proper authentication later)
   addAdminPanelLink();
 
-  // Add active class to current page link
-  const currentPage = window.location.pathname.split("/").pop() || "index.html";
-  const navLinks = document.querySelectorAll(".nav-link, .dropdown-item");
-
-  navLinks.forEach((link) => {
-    const href = link.getAttribute("href");
-    if (href === currentPage) {
-      link.classList.add("active");
-      // If it's a dropdown item, also add active to parent dropdown
-      const dropdownParent = link.closest(".dropdown");
-      if (dropdownParent) {
-        dropdownParent.querySelector(".nav-link").classList.add("active");
-      }
-    }
-  });
+  // Note: Active class is now handled by PHP in the header
+  // JavaScript active class logic removed to prevent conflicts
 });
 
 document.addEventListener("DOMContentLoaded", function () {
