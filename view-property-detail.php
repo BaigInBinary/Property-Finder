@@ -542,6 +542,59 @@ window.addEventListener('DOMContentLoaded', function() {
         s.classList.add('text-primary');
     });
 });
+
+// Function to make all links open in new tab
+function makeLinksOpenInNewTab() {
+    // Find all links in the page
+    const links = document.querySelectorAll('a[href]');
+    
+    links.forEach(link => {
+        const href = link.getAttribute('href');
+        
+        // Check if it's an external link (starts with http://, https://, or www.)
+        // Also check that it doesn't contain malformed HTML
+        if (href && 
+            (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('www.')) &&
+            !href.includes('<') && !href.includes('>') && !href.includes('%')) {
+            // Add target="_blank" and rel="noopener noreferrer" for security
+            link.setAttribute('target', '_blank');
+            link.setAttribute('rel', 'noopener noreferrer');
+        }
+    });
+    
+    // Also handle any dynamically added content (like reviews)
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1) { // Element node
+                        const newLinks = node.querySelectorAll ? node.querySelectorAll('a[href]') : [];
+                        newLinks.forEach(link => {
+                            const href = link.getAttribute('href');
+                            if (href && 
+                                (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('www.')) &&
+                                !href.includes('<') && !href.includes('>') && !href.includes('%')) {
+                                link.setAttribute('target', '_blank');
+                                link.setAttribute('rel', 'noopener noreferrer');
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
+    
+    // Start observing the document body for changes
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}
+
+// Call the function when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    makeLinksOpenInNewTab();
+});
 </script>
 </main>
 <!-- Bootstrap 5 JS Bundle -->
