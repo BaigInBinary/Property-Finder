@@ -1644,7 +1644,7 @@ $stmt->close();
         <h2 class="section-title mb-4">All Transactions Management</h2>
         
         <!-- Stats Cards -->
-        <div class="row mb-4">
+        <div class="d-flex flex-wrap gap-4 mb-4">
             <?php
             // Fetch transaction stats
             $totalTransactions = 0;
@@ -1681,31 +1681,31 @@ $stmt->close();
             $stmt->close();
             ?>
             
-            <div class="col-md-3">
+            <div >
                 <div class="stats-card text-center">
                     <i class="fas fa-credit-card fa-2x mb-2"></i>
-                    <h3><?php echo $totalTransactions; ?></h3>
+                    <h5><?php echo $totalTransactions; ?></h5>
                     <p class="mb-0">Total Transactions</p>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div >
                 <div class="stats-card text-center">
                     <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
-                    <h3>PKR <?php echo number_format($totalRevenue); ?></h3>
+                    <h5>PKR <?php echo number_format($totalRevenue); ?></h5>
                     <p class="mb-0">Total Revenue</p>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div >
                 <div class="stats-card text-center">
                     <i class="fas fa-chart-line fa-2x mb-2"></i>
-                    <h3>PKR <?php echo number_format($avgTransactionAmount); ?></h3>
+                    <h5 class="text-wrap">PKR <?php echo number_format($avgTransactionAmount); ?></h5>
                     <p class="mb-0">Avg. Transaction</p>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div >
                 <div class="stats-card text-center">
                     <i class="fas fa-calendar-day fa-2x mb-2"></i>
-                    <h3><?php echo $recentTransactions; ?></h3>
+                    <h5><?php echo $recentTransactions; ?></h5>
                     <p class="mb-0">Last 30 Days</p>
                 </div>
             </div>
