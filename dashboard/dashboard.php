@@ -1182,8 +1182,39 @@ function handleBuyRequest(id, action) {
                         </div>
 
                         <div class="mb-3">
-                            <label>Location</label>
-                            <input type="text" name="location" id="editLocation" class="form-control" required>
+                            <label>City</label>
+                            <select name="city" id="editCity" class="form-select" required>
+                                <option value="">Select City</option>
+                                <option value="Karachi">Karachi</option>
+                                <option value="Lahore">Lahore</option>
+                                <option value="Islamabad">Islamabad</option>
+                                <option value="Rawalpindi">Rawalpindi</option>
+                                <option value="Faisalabad">Faisalabad</option>
+                                <option value="Multan">Multan</option>
+                                <option value="Peshawar">Peshawar</option>
+                                <option value="Quetta">Quetta</option>
+                                <option value="Sialkot">Sialkot</option>
+                                <option value="Gujranwala">Gujranwala</option>
+                                <option value="Hyderabad">Hyderabad</option>
+                                <option value="Bahawalpur">Bahawalpur</option>
+                                <option value="Sargodha">Sargodha</option>
+                                <option value="Sukkur">Sukkur</option>
+                                <option value="Abbottabad">Abbottabad</option>
+                                <option value="Mardan">Mardan</option>
+                                <option value="Rahim Yar Khan">Rahim Yar Khan</option>
+                                <option value="Okara">Okara</option>
+                                <option value="Dera Ghazi Khan">Dera Ghazi Khan</option>
+                                <option value="Chiniot">Chiniot</option>
+                                <option value="Jhelum">Jhelum</option>
+                                <option value="Gujrat">Gujrat</option>
+                                <option value="Larkana">Larkana</option>
+                                <option value="Sheikhupura">Sheikhupura</option>
+                                <option value="Mirpur Khas">Mirpur Khas</option>
+                                <option value="Muzaffargarh">Muzaffargarh</option>
+                                <option value="Kohat">Kohat</option>
+                                <option value="Swat">Swat</option>
+                                <option value="Gwadar">Gwadar</option>
+                            </select>
                         </div>
 
                         <div class="mb-3">
@@ -1233,10 +1264,8 @@ function handleBuyRequest(id, action) {
             $('#editPropertyId').val(property.id);
             $('#editTitle').val(property.title);
             $('#editPrice').val(property.price);
-            $('#editLocation').val(property.location);
+            $('#editCity').val(property.city);
             $('#editArea').val(property.area);
-            $('#editUnit').val(property.unit);
-            $('#editType').val(property.type);
             $('#editUnit').val(property.unit);
             $('#editType').val(property.type);
 
@@ -1480,7 +1509,7 @@ function handleBuyRequest(id, action) {
                     <div class="card-body">
                         <h5 class="card-title">${property.title}</h5>
                         <p class="card-text text-primary fw-bold">PKR ${property.price ? Number(property.price).toLocaleString() : 'N/A'}</p>
-                        <p class="card-text"><i class="fas fa-map-marker-alt"></i> ${property.location}</p>
+                        <p class="card-text"><i class="fas fa-map-marker-alt"></i> ${property.city || 'Location not specified'}</p>
                         <div class="property-features">
                             <span><i class="fas fa-ruler-combined"></i> ${property.area} ${property.unit}</span>
                             <span><i class="fas fa-home"></i> ${property.type}</span>
@@ -1576,7 +1605,7 @@ function handleBuyRequest(id, action) {
                             <div class="card-body">
                                 <h5 class="card-title">${property.title}</h5>
                                 <p class="card-text text-primary fw-bold">PKR ${Number(property.price).toLocaleString()}</p>
-                                <p class="card-text"><i class="fas fa-map-marker-alt"></i> ${property.location}</p>
+                                <p class="card-text"><i class="fas fa-map-marker-alt"></i> ${property.city || 'Location not specified'}</p>
                                 <div class="property-features">
                                     ${property.bedrooms ? `<span><i class="fas fa-bed"></i> ${property.bedrooms} Beds</span>` : ''}
                                     ${property.bathrooms ? `<span><i class="fas fa-bath"></i> ${property.bathrooms} Baths</span>` : ''}

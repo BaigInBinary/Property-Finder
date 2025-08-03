@@ -15,19 +15,19 @@ if (!$userId) {
 $propertyId = $_POST['property_id'] ?? '';
 $title = $_POST['title'] ?? '';
 $price = $_POST['price'] ?? '';
-$location = $_POST['location'] ?? '';
+$city = $_POST['city'] ?? '';
 $area = $_POST['area'] ?? '';
 $unit = $_POST['unit'] ?? '';
 $type = $_POST['type'] ?? '';
 
 // Validate required fields
-if (!$propertyId || !$title || !$price || !$location || !$area || !$unit || !$type) {
+if (!$propertyId || !$title || !$price || !$city || !$area || !$unit || !$type) {
     echo json_encode(['success' => false, 'message' => 'All fields are required.']);
     exit;
 }
 
 // Update query
-$query = "UPDATE properties SET title=?, price=?, location=?, area=?, unit=?, type=? WHERE id=? AND user_id=?";
+$query = "UPDATE properties SET title=?, price=?, city=?, area=?, unit=?, type=? WHERE id=? AND user_id=?";
 $stmt = $conn->prepare($query);
 
 if (!$stmt) {
@@ -35,7 +35,7 @@ if (!$stmt) {
     exit;
 }
 
-$stmt->bind_param("sdssssii", $title, $price, $location, $area, $unit, $type, $propertyId, $userId);
+$stmt->bind_param("sdssssii", $title, $price, $city, $area, $unit, $type, $propertyId, $userId);
 
 if ($stmt->execute()) {
     echo json_encode(['success' => true, 'message' => 'Property updated successfully']);
