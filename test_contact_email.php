@@ -50,10 +50,10 @@ try {
 // Test 4: Test email sending (optional - uncomment to test)
 echo "<h3>Test 4: Email Sending Test</h3>";
 echo "⚠️ Uncomment the code below to test actual email sending<br>";
-echo "Note: This will send a test email to ammaramjad0324@gmail.com<br>";
+echo "Note: This will send a test email to propfind3@gmail.com<br>";
 
 /*
-$to = 'ammaramjad0324@gmail.com';
+$to = 'propfind3@gmail.com';
 $subject = 'Test Email - PropFind Contact Form';
 $message = 'This is a test email from the PropFind contact form system.';
 $headers = 'From: test@propfind.com' . "\r\n";
@@ -70,7 +70,7 @@ echo "<ol>";
 echo "<li>Make sure your server has email functionality configured</li>";
 echo "<li>Run the SQL script to create the contact_messages table</li>";
 echo "<li>Test the contact form on the contact.php page</li>";
-echo "<li>Check your email (ammaramjad0324@gmail.com) for incoming messages</li>";
+echo "<li>Check your email (propfind3@gmail.com) for incoming messages</li>";
 echo "</ol>";
 
 echo "<h3>Files Created/Modified:</h3>";

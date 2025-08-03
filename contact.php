@@ -69,7 +69,7 @@
                                         <i class="fas fa-envelope h5 me-2"></i> 
                                         <h3>Email Address</h3>
                                     </div>
-                                    <p>ammaramjad0324@gmail.com</p>
+                                    <p>propfind3@gmail.com</p>
                                 </div>
                             </div>
 

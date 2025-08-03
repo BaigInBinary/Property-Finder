@@ -10,6 +10,32 @@ const gridViewBtn = document.getElementById("gridView");
 const listViewBtn = document.getElementById("listView");
 const filterForm = document.getElementById("filterForm");
 const pagination = document.getElementById("pagination");
+const clearFiltersBtn = document.getElementById("clearFilters");
+
+// Function to check if any filters are applied
+function checkFiltersApplied() {
+  const formData = new FormData(filterForm);
+  const filters = {
+    minPrice: formData.get("minPrice"),
+    maxPrice: formData.get("maxPrice"),
+    city: formData.get("city"),
+    minSize: formData.get("minSize"),
+    maxSize: formData.get("maxSize"),
+    propertyType: formData.get("propertyType"),
+  };
+
+  // Check if any filter has a value
+  const hasFilters = Object.values(filters).some(
+    (value) => value && value.trim() !== ""
+  );
+
+  // Show/hide clear button based on filter status
+  if (hasFilters) {
+    clearFiltersBtn.style.display = "block";
+  } else {
+    clearFiltersBtn.style.display = "none";
+  }
+}
 
 // Fetch properties from backend
 const fetchProperties = async () => {
@@ -285,6 +311,9 @@ pagination.addEventListener("click", function (e) {
 document.addEventListener("DOMContentLoaded", async () => {
   await fetchProperties();
 
+  // Check initial filter state
+  checkFiltersApplied();
+
   gridViewBtn.addEventListener("click", () => {
     currentView = "grid";
     gridViewBtn.classList.add("active");
@@ -303,5 +332,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     e.preventDefault();
     currentPage = 1;
     await fetchProperties();
+    checkFiltersApplied();
+  });
+
+  // Add event listeners to all filter inputs to check filter state
+  const filterInputs = filterForm.querySelectorAll("input, select");
+  filterInputs.forEach((input) => {
+    input.addEventListener("input", checkFiltersApplied);
+    input.addEventListener("change", checkFiltersApplied);
+  });
+
+  // Clear filters functionality
+  clearFiltersBtn.addEventListener("click", async function () {
+    // Reset all form fields
+    filterForm.reset();
+
+    // Reset current page
+    currentPage = 1;
+
+    // Fetch properties without filters
+    await fetchProperties();
+
+    // Hide clear button since no filters are applied
+    checkFiltersApplied();
+
+    // Show success message
+    if (typeof iziToast !== "undefined") {
+      iziToast.success({
+        title: "Filters Cleared",
+        message: "All filters have been cleared successfully.",
+        position: "topRight",
+      });
+    }
   });
 });

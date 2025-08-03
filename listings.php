@@ -71,7 +71,10 @@
 
                     <!-- Bedrooms filter removed -->
 
-                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        <button type="button" class="btn btn-outline-secondary" id="clearFilters">Clear All Filters</button>
+                    </div>
                 </form>
             </div>
         </div>
