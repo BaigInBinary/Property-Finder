@@ -243,6 +243,10 @@
                 'redo'
             ]
         })
+        .then(editor => {
+            // Make the editor instance globally accessible
+            window.descriptionEditor = editor;
+        })
         .catch(error => {
             console.error(error);
         });

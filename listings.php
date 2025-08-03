@@ -41,10 +41,35 @@
                         <label class="form-label">City</label>
                         <select class="form-select" id="city" name="city">
                             <option value="">All Cities</option>
-                            <option value="lahore">Lahore</option>
-                            <option value="karachi">Karachi</option>
-                            <option value="islamabad">Islamabad</option>
-                            <option value="rawalpindi">Rawalpindi</option>
+                            <option value="Karachi">Karachi</option>
+                            <option value="Lahore">Lahore</option>
+                            <option value="Islamabad">Islamabad</option>
+                            <option value="Rawalpindi">Rawalpindi</option>
+                            <option value="Faisalabad">Faisalabad</option>
+                            <option value="Multan">Multan</option>
+                            <option value="Peshawar">Peshawar</option>
+                            <option value="Quetta">Quetta</option>
+                            <option value="Sialkot">Sialkot</option>
+                            <option value="Gujranwala">Gujranwala</option>
+                            <option value="Hyderabad">Hyderabad</option>
+                            <option value="Bahawalpur">Bahawalpur</option>
+                            <option value="Sargodha">Sargodha</option>
+                            <option value="Sukkur">Sukkur</option>
+                            <option value="Abbottabad">Abbottabad</option>
+                            <option value="Mardan">Mardan</option>
+                            <option value="Rahim Yar Khan">Rahim Yar Khan</option>
+                            <option value="Okara">Okara</option>
+                            <option value="Dera Ghazi Khan">Dera Ghazi Khan</option>
+                            <option value="Chiniot">Chiniot</option>
+                            <option value="Jhelum">Jhelum</option>
+                            <option value="Gujrat">Gujrat</option>
+                            <option value="Larkana">Larkana</option>
+                            <option value="Sheikhupura">Sheikhupura</option>
+                            <option value="Mirpur Khas">Mirpur Khas</option>
+                            <option value="Muzaffargarh">Muzaffargarh</option>
+                            <option value="Kohat">Kohat</option>
+                            <option value="Swat">Swat</option>
+                            <option value="Gwadar">Gwadar</option>
                         </select>
                     </div>
 

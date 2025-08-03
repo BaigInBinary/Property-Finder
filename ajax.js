@@ -75,7 +75,16 @@ document.addEventListener("DOMContentLoaded", function () {
       xhr.onload = () => {
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.innerText = "Sign Up";
+          // Restore original button text based on action
+          if (action === "upload_property") {
+            submitBtn.innerHTML = '<i class="fas fa-upload"></i> Submit now';
+          } else if (action === "signup_user") {
+            submitBtn.innerText = "Sign Up";
+          } else if (action === "login_user") {
+            submitBtn.innerText = "Login";
+          } else {
+            submitBtn.innerText = "Submit";
+          }
         }
 
         console.log("📬 Response received from server:", xhr.responseText);
@@ -112,6 +121,15 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
               form.reset();
               form.classList.remove("was-validated");
+
+              // Clear CKEditor content if it exists
+              if (
+                window.descriptionEditor &&
+                typeof window.descriptionEditor.setData === "function"
+              ) {
+                window.descriptionEditor.setData("");
+              }
+
               // Always clear property image previews after upload
               if (typeof window.resetPropertyImageInput === "function") {
                 window.resetPropertyImageInput();
