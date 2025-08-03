@@ -1257,6 +1257,12 @@ input[type="file"].form-control::-webkit-file-upload-button:hover {
   background-color: rgba(59, 130, 246, 0.1);
 }
 
+.dropdown-item.active {
+  color: #ffffff;
+  background-color: rgba(59, 130, 246, 0.2);
+  font-weight: 600;
+}
+
 .dropdown-item i {
   width: 20px;
   text-align: center;

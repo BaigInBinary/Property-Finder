@@ -149,22 +149,22 @@ if ($currentPage === 'upload-property.php' && !isset($_SESSION['user_id'])) {
                 <!-- Main Navigation Items -->
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.php">
+                        <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'active' : ''; ?>" href="index.php">
                             <i class="fas fa-home d-xl-none me-2"></i>Home
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="listings.php">
+                        <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'listings.php') ? 'active' : ''; ?>" href="listings.php">
                             <i class="fas fa-list d-xl-none me-2"></i>All Listings
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="upload-property.php">
+                        <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'upload-property.php') ? 'active' : ''; ?>" href="upload-property.php">
                             <i class="fas fa-upload d-xl-none me-2"></i>Upload Property
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="dashboard/dashboard.php">
+                        <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'dashboard.php') ? 'active' : ''; ?>" href="dashboard/dashboard.php">
                             <i class="fas fa-tachometer-alt d-xl-none me-2"></i>Dashboard
                         </a>
                     </li>
@@ -176,23 +176,23 @@ if ($currentPage === 'upload-property.php' && !isset($_SESSION['user_id'])) {
                         </a>
                         <ul class="dropdown-menu">
                             <li>
-                                <a class="dropdown-item" href="compare.php">
+                                <a class="dropdown-item <?php echo (basename($_SERVER['PHP_SELF']) == 'compare.php') ? 'active' : ''; ?>" href="compare.php">
                                     <i class="fas fa-exchange-alt me-2"></i>Compare Properties
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="chat.php">
+                                <a class="dropdown-item <?php echo (basename($_SERVER['PHP_SELF']) == 'chat.php') ? 'active' : ''; ?>" href="chat.php">
                                     <i class="fas fa-comments me-2"></i>Chat
                                 </a>
                             </li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <a class="dropdown-item" href="about.php">
+                                <a class="dropdown-item <?php echo (basename($_SERVER['PHP_SELF']) == 'about.php') ? 'active' : ''; ?>" href="about.php">
                                     <i class="fas fa-info-circle me-2"></i>About Us
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="contact.php">
+                                <a class="dropdown-item <?php echo (basename($_SERVER['PHP_SELF']) == 'contact.php') ? 'active' : ''; ?>" href="contact.php">
                                     <i class="fas fa-envelope me-2"></i>Contact
                                 </a>
                             </li> 
