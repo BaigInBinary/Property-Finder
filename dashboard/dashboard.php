@@ -727,11 +727,13 @@ $stmt->close();
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label">Phone</label>
-                                                    <input type="tel" name="phone" class="form-control" value="">
+                                                    <input type="text" name="phone" class="form-control" value="" 
+                                                           placeholder="03XX-XXXXXXX">
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Location</label>
-                                                    <input type="text" name="location" class="form-control" value="">
+                                                    <input type="text" name="location" class="form-control" value="" 
+                                                           placeholder="City, Country">
                                                 </div>
                                             </div>
                                             <div class="mb-3">
@@ -1331,6 +1333,58 @@ function handleBuyRequest(id, action) {
     </script>
 
     <script>
+        // Apply same validation as signup form
+        $(document).ready(function() {
+            // Phone field validation (same as signup)
+            $('input[name="phone"]').on('input', function(e) {
+                // Remove all non-digits
+                let value = this.value.replace(/\D/g, '');
+                // Limit to 11 digits (4 for code, 7 for number)
+                value = value.substring(0, 11);
+
+                // Format as 0300-1234567
+                let formatted = value;
+                if (value.length > 4) {
+                    formatted = value.substring(0, 4) + '-' + value.substring(4, 11);
+                }
+                this.value = formatted;
+            });
+
+            // Phone field paste validation
+            $('input[name="phone"]').on('paste', function(e) {
+                let paste = (e.clipboardData || window.clipboardData).getData('text');
+                let digits = paste.replace(/\D/g, '').substring(0, 11);
+                let formatted = digits;
+                if (digits.length > 4) {
+                    formatted = digits.substring(0, 4) + '-' + digits.substring(4, 11);
+                }
+                e.preventDefault();
+                this.value = formatted;
+            });
+            
+            // Location field validation (same as name field in signup)
+            $('input[name="location"]').on('input', function(e) {
+                // Only allow letters, spaces, and common punctuation
+                let value = this.value.replace(/[^A-Za-z\s,.-]/g, '');
+                if (this.value !== value) {
+                    this.value = value;
+                }
+            });
+
+            // Location field paste validation
+            $('input[name="location"]').on('paste', function(e) {
+                let paste = (e.clipboardData || window.clipboardData).getData('text');
+                let filtered = paste.replace(/[^A-Za-z\s,.-]/g, '');
+                e.preventDefault();
+                // Insert filtered text at cursor position
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.slice(0, start) + filtered + this.value.slice(end);
+                // Move cursor to end of inserted text
+                this.selectionStart = this.selectionEnd = start + filtered.length;
+            });
+        });
+
         $(document).ready(function() {
             fetchSavedProperties();
 
