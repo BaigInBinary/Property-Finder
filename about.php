@@ -12,7 +12,7 @@
                         <a href="listings.php" class="btn btn-primary btn-lg">Explore Properties</a>
                     </div>
                     <div class="col-lg-6 d-none d-lg-block">
-                        <img src="images/hero-about.jpg" alt="Modern Property" class="img-fluid rounded-3 shadow">
+                        <!-- <img src="./images/hero-about.jpg" alt="Modern Property" class="img-fluid rounded-3 shadow"> -->
                     </div>
                 </div>
             </div>
@@ -67,7 +67,7 @@
                                     "We're committed to bringing transparency and trust to real estate transactions in Pakistan, making it easier for everyone to find their perfect property."
                                 </blockquote>
                                 <div class="founder-info">
-                                    <img src="images/team-1.jpg" alt="Mian Ammar" class="founder-image">
+                                    <img src="./images/user.png" class="rounded-circle" height="64px" width="64px" alt="Mian Ammar">
                                     <div>
                                         <h4>Mian Ammar</h4>
                                         <p class="text-muted">CEO & Founder</p>
@@ -113,7 +113,7 @@
                     <div class="col-md-4">
                         <div class="team-card">
                             <div class="team-image">
-                                <img src="images/team-1.jpg" alt="Team Member">
+                                <img src="./images/user.png" class="rounded-circle mx-auto" height="148px" width="148px" alt="Team Member">
                             </div>
                             <div class="team-info">
                                 <h4>Mian Ammar</h4>
@@ -125,7 +125,7 @@
                     <div class="col-md-4">
                         <div class="team-card">
                             <div class="team-image">
-                                <img src="images/team-2.jpg" alt="Team Member">
+                                <img src="./images/user.png" class="rounded-circle mx-auto" height="148px" width="148px" alt="Team Member">
                             </div>
                             <div class="team-info">
                                 <h4>M Ammar</h4>
@@ -137,7 +137,7 @@
                     <div class="col-md-4">
                         <div class="team-card">
                             <div class="team-image">
-                                <img src="images/team-3.jpg" alt="Team Member">
+                                <img src="./images/user.png" class="rounded-circle mx-auto" height="148px" width="148px" alt="Team Member">
                             </div>
                             <div class="team-info">
                                 <h4>Rana Mubeen</h4>
