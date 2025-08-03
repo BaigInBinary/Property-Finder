@@ -32,6 +32,12 @@ $description = trim($_POST['description']);
 $link        = trim($_POST['link'] ?? '');
 $city        = trim($_POST['city']);
 
+// Validate price - minimum 5 digits (10,000 PKR)
+if ($price < 10000 || strlen((string)$price) < 5) {
+    echo json_encode(['status' => 'error', 'message' => 'Price must be at least 5 digits (minimum 10,000 PKR)']);
+    exit;
+}
+
 // File upload paths
 $propertyDir = 'uploads/property/';
 $cnicDir     = 'uploads/cnic/';

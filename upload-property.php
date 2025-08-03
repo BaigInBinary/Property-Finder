@@ -44,10 +44,10 @@
                             <div class="input-group">
                                 <span class="input-group-text">PKR</span>
                                 <input type="number" class="form-control" id="price" name="price"
-                                    required min="500" max="500000000">
+                                    required min="10000" max="500000000" pattern="[0-9]{5,}">
                             </div>
                             <div class="invalid-feedback">
-                                Price must be between 500 and 500,000,000 PKR
+                                Price must be at least 5 digits (minimum 10,000 PKR) and maximum 500,000,000 PKR
                             </div>
                         </div>
 
@@ -257,6 +257,33 @@
 <!-- CNIC Formatting Script -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Price validation - ensure minimum 5 digits
+    const priceInput = document.getElementById('price');
+    if (priceInput) {
+        priceInput.addEventListener('input', function(e) {
+            const value = this.value;
+            if (value && value.length < 5) {
+                this.setCustomValidity('Price must be at least 5 digits (minimum 10,000 PKR)');
+            } else if (value && parseInt(value) < 10000) {
+                this.setCustomValidity('Price must be at least 10,000 PKR');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+        
+        // Also validate on blur
+        priceInput.addEventListener('blur', function(e) {
+            const value = this.value;
+            if (value && value.length < 5) {
+                this.setCustomValidity('Price must be at least 5 digits (minimum 10,000 PKR)');
+            } else if (value && parseInt(value) < 10000) {
+                this.setCustomValidity('Price must be at least 10,000 PKR');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+
     const cnicInput = document.getElementById('cnicNumber');
     if (cnicInput) {
         console.log("CNIC input found in inline script");
