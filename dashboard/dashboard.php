@@ -613,37 +613,6 @@ $stmt->close();
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Notifications Placeholder -->
-                            <div class="col-lg-4">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title mb-0">Recent Notifications</h5>
-                                    </div>
-                                    <div class="card-body p-0">
-                                        <div class="notification-list">
-                                            <a href="#" class="notification-item">
-                                                <div class="notification-icon bg-primary">
-                                                    <i class="fas fa-user-plus"></i>
-                                                </div>
-                                                <div class="notification-content">
-                                                    <p class="mb-1">New user registered</p>
-                                                    <small class="text-muted">5 minutes ago</small>
-                                                </div>
-                                            </a>
-                                            <a href="#" class="notification-item">
-                                                <div class="notification-icon bg-danger">
-                                                    <i class="fas fa-heart"></i>
-                                                </div>
-                                                <div class="notification-content">
-                                                    <p class="mb-1">Your property was liked</p>
-                                                    <small class="text-muted">1 hour ago</small>
-                                                </div>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                         <!-- Transaction History Table -->
                         <div class="card mt-4">
@@ -1375,6 +1344,28 @@ function handleBuyRequest(id, action) {
             $('input[name="location"]').on('paste', function(e) {
                 let paste = (e.clipboardData || window.clipboardData).getData('text');
                 let filtered = paste.replace(/[^A-Za-z\s,.-]/g, '');
+                e.preventDefault();
+                // Insert filtered text at cursor position
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.slice(0, start) + filtered + this.value.slice(end);
+                // Move cursor to end of inserted text
+                this.selectionStart = this.selectionEnd = start + filtered.length;
+            });
+
+            // Full Name field validation (same as name field in signup)
+            $('input[name="full_name"]').on('input', function(e) {
+                // Only allow letters and spaces
+                let value = this.value.replace(/[^A-Za-z\s]/g, '');
+                if (this.value !== value) {
+                    this.value = value;
+                }
+            });
+
+            // Full Name field paste validation
+            $('input[name="full_name"]').on('paste', function(e) {
+                let paste = (e.clipboardData || window.clipboardData).getData('text');
+                let filtered = paste.replace(/[^A-Za-z\s]/g, '');
                 e.preventDefault();
                 // Insert filtered text at cursor position
                 const start = this.selectionStart;
