@@ -5,13 +5,13 @@ require_once '../backend/db.php';
 $propertyId = $_GET['id'] ?? null;
 
 if ($propertyId) {
-    $stmt = $conn->prepare("UPDATE properties SET status = 'rejected' WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE properties SET listing = 'rejected' WHERE id = ?");
     $stmt->bind_param('i', $propertyId);
 
     if ($stmt->execute()) {
-        $_SESSION['success'] = "Property approved successfully.";
+        $_SESSION['success'] = "Property rejected successfully.";
     } else {
-        $_SESSION['error'] = "Failed to approve property.";
+        $_SESSION['error'] = "Failed to reject property.";
     }
     $stmt->close();
 }

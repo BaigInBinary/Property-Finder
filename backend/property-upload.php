@@ -120,12 +120,24 @@ if (isset($_FILES['ownershipDocs']) && !empty($_FILES['ownershipDocs']['tmp_name
     }
 }
 
+// Check if user is admin
+$userRoleQuery = "SELECT role FROM users WHERE id = ?";
+$roleStmt = $conn->prepare($userRoleQuery);
+$roleStmt->bind_param("i", $userId);
+$roleStmt->execute();
+$roleResult = $roleStmt->get_result();
+$user = $roleResult->fetch_assoc();
+$roleStmt->close();
+
+// Determine listing status based on user role
+$listingStatus = (strtolower($user['role']) === 'admin') ? 'approved' : 'pending';
+
 // Insert into DB
 $imagesJson = json_encode($propertyImages);
 
 $stmt = $conn->prepare("INSERT INTO properties 
-    (user_id, title, price, type, area, unit, city, cnic_number, cnic_image, ownership_docs, images_json, description, link, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+    (user_id, title, price, type, area, unit, city, cnic_number, cnic_image, ownership_docs, images_json, description, link, listing, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
 
 if (!$stmt) {
     echo json_encode(['status' => 'error', 'message' => 'Prepare failed: ' . $conn->error]);
@@ -133,7 +145,7 @@ if (!$stmt) {
 }
 
 $stmt->bind_param(
-    "isdsdssssssss",
+    "isdsdsssssssss",
     $userId,
     $title,
     $price,
@@ -146,11 +158,16 @@ $stmt->bind_param(
     $docsPath,
     $imagesJson,
     $description,
-    $link
+    $link,
+    $listingStatus
 );
 
 if ($stmt->execute()) {
-    echo json_encode(['status' => 'success', 'message' => 'Property uploaded successfully!']);
+    if (strtolower($user['role']) === 'admin') {
+        echo json_encode(['status' => 'success', 'message' => 'Property uploaded successfully and is now live!']);
+    } else {
+        echo json_encode(['status' => 'success', 'message' => 'Property uploaded successfully! It will be reviewed by admin and listed once approved.']);
+    }
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $stmt->error]);
 }

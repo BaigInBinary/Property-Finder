@@ -303,6 +303,7 @@ $stmt->close();
                         <span>Account Settings</span>
                     </a>
                 </li>
+                <?php if (!isset($userRole) || strtolower($userRole) !== 'admin'): ?>
                 <li class="nav-item">
                     <a href="#properties" class="nav-link" data-section="properties">
                         <i class="fas fa-building"></i>
@@ -328,17 +329,44 @@ $stmt->close();
                         <span>Referral Rewards</span>
                     </a>
                 </li>
+                <?php endif; ?>
+                <?php if (!isset($userRole) || strtolower($userRole) !== 'admin'): ?>
                 <li class="nav-item">
                     <a href="#transactions" class="nav-link" data-section="transactions">
                         <i class="fas fa-exchange-alt"></i>
                         <span>Transactions</span>
                     </a>
                 </li>
+                <?php endif; ?>
                 <?php if (isset($userRole) && strtolower($userRole) === 'admin'): ?>
+                <li class="nav-item">
+                    <a href="#all-properties" class="nav-link" data-section="all-properties">
+                        <i class="fas fa-building"></i>
+                        <span>All Properties</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#all-users" class="nav-link" data-section="all-users">
+                        <i class="fas fa-users"></i>
+                        <span>All Users</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#all-transactions" class="nav-link" data-section="all-transactions">
+                        <i class="fas fa-credit-card"></i>
+                        <span>All Transactions</span>
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a href="#buy-requests" class="nav-link" data-section="buy-requests">
                         <i class="fas fa-shopping-cart"></i>
                         <span>Manage Buy Requests</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#property-approvals" class="nav-link" data-section="property-approvals">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Property Approvals</span>
                     </a>
                 </li>
                 <?php endif; ?>
@@ -500,112 +528,272 @@ $stmt->close();
 
                         <!-- Stats Cards -->
                         <div class="row g-4 mb-4">
-                            <div class="col-md-6 col-xl-4">
-                                <div class="stats-card">
-                                    <div class="stats-icon bg-primary">
-                                        <i class="fas fa-building"></i>
-                                    </div>
-                                    <div class="stats-info">
-                                        <h3><?php echo $postedCount; ?></h3>
-                                        <p>Posted Properties</p>
+                            <?php if (isset($userRole) && strtolower($userRole) === 'admin'): ?>
+                                <!-- Admin Stats -->
+                                <?php
+                                // Fetch admin stats
+                                $totalProperties = 0;
+                                $totalTransactions = 0;
+                                $totalUsers = 0;
+                                $totalRevenue = 0;
+                                
+                                // Total Properties
+                                $stmt = $conn->prepare("SELECT COUNT(*) FROM properties");
+                                $stmt->execute();
+                                $stmt->bind_result($totalProperties);
+                                $stmt->fetch();
+                                $stmt->close();
+                                
+                                // Total Transactions
+                                $stmt = $conn->prepare("SELECT COUNT(*) FROM transactions");
+                                $stmt->execute();
+                                $stmt->bind_result($totalTransactions);
+                                $stmt->fetch();
+                                $stmt->close();
+                                
+                                // Total Users
+                                $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE role != 'admin'");
+                                $stmt->execute();
+                                $stmt->bind_result($totalUsers);
+                                $stmt->fetch();
+                                $stmt->close();
+                                
+                                // Total Revenue
+                                $stmt = $conn->prepare("SELECT SUM(amount) FROM transactions");
+                                $stmt->execute();
+                                $stmt->bind_result($totalRevenue);
+                                $stmt->fetch();
+                                $stmt->close();
+                                ?>
+                                
+                                <div class="col-md-6 col-xl-3">
+                                    <div class="stats-card">
+                                        <div class="stats-icon bg-primary">
+                                            <i class="fas fa-building"></i>
+                                        </div>
+                                        <div class="stats-info">
+                                            <h3><?php echo $totalProperties; ?></h3>
+                                            <p>Total Properties</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="col-md-6 col-xl-4">
-                                <div class="stats-card">
-                                    <div class="stats-icon bg-warning">
-                                        <i class="fas fa-bookmark"></i>
-                                    </div>
-                                    <div class="stats-info">
-                                        <h3><?php echo $savedCount; ?></h3>
-                                        <p>Saved Properties</p>
+                                <div class="col-md-6 col-xl-3">
+                                    <div class="stats-card">
+                                        <div class="stats-icon bg-success">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </div>
+                                        <div class="stats-info">
+                                            <h3><?php echo $totalTransactions; ?></h3>
+                                            <p>Total Transactions</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="col-md-6 col-xl-4">
-                                <div class="stats-card">
-                                    <div class="stats-icon bg-info">
-                                        <i class="fas fa-gift"></i>
-                                    </div>
-                                    <div class="stats-info">
-                                        <h3><?php echo $rewardPoints ?: 0; ?></h3>
-                                        <p>Reward Points</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6 col-xl-4">
-                                <div class="stats-card">
-                                    <div class="stats-icon bg-success">
-                                        <i class="fas fa-wallet"></i>
-                                    </div>
-                                    <div class="stats-info">
-                                        <h3>PKR <?php echo number_format($revenue ?: 0); ?></h3>
-                                        <p>Total Revenue (as Seller)</p>
+                                <div class="col-md-6 col-xl-3">
+                                    <div class="stats-card">
+                                        <div class="stats-icon bg-info">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <div class="stats-info">
+                                            <h3><?php echo $totalUsers; ?></h3>
+                                            <p>Total Users</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6 col-xl-4">
-                                <div class="stats-card">
-                                    <div class="stats-icon bg-danger">
-                                        <i class="fas fa-credit-card"></i>
-                                    </div>
-                                    <div class="stats-info">
-                                        <h3>PKR <?php echo number_format($expenditure ?: 0); ?></h3>
-                                        <p>Total Expenditure (as Buyer)</p>
+
+                                <div class="col-md-6 col-xl-3">
+                                    <div class="stats-card">
+                                        <div class="stats-icon bg-warning">
+                                            <i class="fas fa-wallet"></i>
+                                        </div>
+                                        <div class="stats-info">
+                                            <h3>PKR <?php echo number_format($totalRevenue ?: 0); ?></h3>
+                                            <p>Total Revenue</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            <?php else: ?>
+                                <!-- Regular User Stats -->
+                                <div class="col-md-6 col-xl-4">
+                                    <div class="stats-card">
+                                        <div class="stats-icon bg-primary">
+                                            <i class="fas fa-building"></i>
+                                        </div>
+                                        <div class="stats-info">
+                                            <h3><?php echo $postedCount; ?></h3>
+                                            <p>Posted Properties</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 col-xl-4">
+                                    <div class="stats-card">
+                                        <div class="stats-icon bg-warning">
+                                            <i class="fas fa-bookmark"></i>
+                                        </div>
+                                        <div class="stats-info">
+                                            <h3><?php echo $savedCount; ?></h3>
+                                            <p>Saved Properties</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 col-xl-4">
+                                    <div class="stats-card">
+                                        <div class="stats-icon bg-info">
+                                            <i class="fas fa-gift"></i>
+                                        </div>
+                                        <div class="stats-info">
+                                            <h3><?php echo $rewardPoints ?: 0; ?></h3>
+                                            <p>Reward Points</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-xl-4">
+                                    <div class="stats-card">
+                                        <div class="stats-icon bg-success">
+                                            <i class="fas fa-wallet"></i>
+                                        </div>
+                                        <div class="stats-info">
+                                            <h3>PKR <?php echo number_format($revenue ?: 0); ?></h3>
+                                            <p>Total Revenue (as Seller)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-xl-4">
+                                    <div class="stats-card">
+                                        <div class="stats-icon bg-danger">
+                                            <i class="fas fa-credit-card"></i>
+                                        </div>
+                                        <div class="stats-info">
+                                            <h3>PKR <?php echo number_format($expenditure ?: 0); ?></h3>
+                                            <p>Total Expenditure (as Buyer)</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
                         </div>
 
-                        <!-- Recent Activity -->
+                        <!-- Recent Properties Table -->
                         <div class="row">
-                            <div class="col-lg-8 mb-4">
+                            <div class="col-12">
                                 <div class="card">
                                     <div class="card-header">
-                                        <h5 class="card-title mb-0">Recent Properties</h5>
+                                        <h5 class="card-title mb-0">
+                                            <?php if (isset($userRole) && strtolower($userRole) === 'admin'): ?>
+                                                Recent Properties
+                                            <?php else: ?>
+                                                Recent Properties 
+                                            <?php endif; ?>
+                                        </h5>
                                     </div>
                                     <div class="card-body">
                                         <div class="table-responsive">
                                             <table class="table table-hover">
                                                 <thead>
                                                     <tr>
-                                                        <th>Property</th>
-                                                        <th>Location</th>
+                                                        <th>ID</th>
+                                                        <th>Prop. Name</th>
+                                                        <th>Owner</th>
+                                                        <th>City</th>
+                                                        <th>Type</th>
                                                         <th>Price</th>
-                                                        <th>Actions</th>
+                                                        <th>Status</th>
+                                                        <th>Created</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <?php if (!empty($recentProperties)): ?>
-                                                        <?php foreach ($recentProperties as $property): ?>
+                                                    <?php if (isset($userRole) && strtolower($userRole) === 'admin'): ?>
+                                                        <!-- Admin Recent Properties -->
+                                                        <?php
+                                                        $adminRecentQuery = "SELECT p.*, u.name as owner_name, u.email as owner_email 
+                                                                           FROM properties p 
+                                                                           LEFT JOIN users u ON p.user_id = u.id 
+                                                                           ORDER BY p.created_at DESC 
+                                                                           LIMIT 5";
+                                                        $adminRecentResult = $conn->query($adminRecentQuery);
+                                                        while ($property = $adminRecentResult->fetch_assoc()):
+                                                        ?>
                                                             <tr>
+                                                                <td><?php echo htmlspecialchars($property['id']); ?></td>
+                                                                <td><?php echo htmlspecialchars($property['title']); ?></td>
                                                                 <td>
-                                                                    <div class="d-flex align-items-center">
-                                                                        <img src="../<?php echo htmlspecialchars($property['thumbnail']); ?>" alt="Property" class="property-thumb me-2" width="50" height="50">
-                                                                        <span><?php echo htmlspecialchars($property['title']); ?></span>
+                                                                    <div>
+                                                                        <strong><?php echo htmlspecialchars($property['owner_name']); ?></strong>
+                                                                        <br><small class="text-muted"><?php echo htmlspecialchars($property['owner_email']); ?></small>
                                                                     </div>
                                                                 </td>
-                                                                <td><?php echo htmlspecialchars($property['location']); ?></td>
-                                                                <td>PKR <?php echo number_format($property['price']); ?></td>
+                                                                <td><?php echo htmlspecialchars($property['city']); ?></td>
+                                                                <td><?php echo htmlspecialchars($property['type']); ?></td>
+                                                                <td><strong>PKR <?php echo number_format($property['price']); ?></strong></td>
                                                                 <td>
-                                                                <button 
-        class="btn btn-sm btn-outline-danger delete-btn" 
-        data-property-id="<?php echo $property['id']; ?>"
-    >
-        <i class="fas fa-trash"></i>
-    </button>
-
-
+                                                                    <span class="badge bg-<?php echo $property['status'] === 'active' ? 'success' : ($property['status'] === 'pending' ? 'warning' : 'secondary'); ?>">
+                                                                        <?php echo ucfirst($property['status']); ?>
+                                                                    </span>
                                                                 </td>
-
+                                                                <td><?php echo date('M d, Y', strtotime($property['created_at'])); ?></td>
                                                             </tr>
-                                                        <?php endforeach; ?>
+                                                        <?php endwhile; ?>
                                                     <?php else: ?>
-                                                        <tr>
-                                                            <td colspan="4" class="text-center">No recent properties found.</td>
-                                                        </tr>
+                                                        <!-- Regular User Recent Properties -->
+                                                        <?php
+                                                        $userRecentQuery = "SELECT p.*, u.name as owner_name, u.email as owner_email 
+                                                                          FROM properties p 
+                                                                          LEFT JOIN users u ON p.user_id = u.id 
+                                                                          WHERE p.user_id = ? 
+                                                                          ORDER BY p.created_at DESC 
+                                                                          LIMIT 5";
+                                                        $stmt = $conn->prepare($userRecentQuery);
+                                                        $stmt->bind_param("i", $userId);
+                                                        $stmt->execute();
+                                                        $userRecentResult = $stmt->get_result();
+                                                        while ($property = $userRecentResult->fetch_assoc()):
+                                                        ?>
+                                                            <tr>
+                                                                <td><?php echo htmlspecialchars($property['id']); ?></td>
+                                                                <td><?php echo htmlspecialchars($property['title']); ?></td>
+                                                                <td>
+                                                                    <div>
+                                                                        <strong><?php echo htmlspecialchars($property['owner_name']); ?></strong>
+                                                                        <br><small class="text-muted"><?php echo htmlspecialchars($property['owner_email']); ?></small>
+                                                                    </div>
+                                                                </td>
+                                                                <td><?php echo htmlspecialchars($property['city']); ?></td>
+                                                                <td><?php echo htmlspecialchars($property['type']); ?></td>
+                                                                <td><strong>PKR <?php echo number_format($property['price']); ?></strong></td>
+                                                                <td>
+                                                                    <span class="badge bg-<?php echo $property['status'] === 'active' ? 'success' : ($property['status'] === 'pending' ? 'warning' : 'secondary'); ?>">
+                                                                        <?php echo ucfirst($property['status']); ?>
+                                                                    </span>
+                                                                </td>
+                                                                <td><?php echo date('M d, Y', strtotime($property['created_at'])); ?></td>
+                                                                <td>
+                                                                    <div class="btn-group" role="group">
+                                                                        <button class="btn btn-sm btn-outline-primary" 
+                                                                                onclick="viewProperty(<?php echo $property['id']; ?>)"
+                                                                                title="View Property">
+                                                                            <i class="fas fa-eye"></i>
+                                                                        </button>
+                                                                        <button class="btn btn-sm btn-outline-warning" 
+                                                                                onclick="togglePropertyStatus(<?php echo $property['id']; ?>, '<?php echo $property['status']; ?>')"
+                                                                                title="<?php echo $property['status'] === 'active' ? 'Deactivate' : 'Activate'; ?>">
+                                                                            <i class="fas fa-<?php echo $property['status'] === 'active' ? 'pause' : 'play'; ?>"></i>
+                                                                        </button>
+                                                                        <button class="btn btn-sm btn-outline-danger" 
+                                                                                onclick="deleteProperty(<?php echo $property['id']; ?>)"
+                                                                                title="Delete Property">
+                                                                            <i class="fas fa-trash"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        <?php endwhile; ?>
+                                                        <?php if ($userRecentResult->num_rows === 0): ?>
+                                                            <tr>
+                                                                <td colspan="9" class="text-center">No recent properties found.</td>
+                                                            </tr>
+                                                        <?php endif; ?>
                                                     <?php endif; ?>
                                                 </tbody>
                                             </table>
@@ -614,7 +802,114 @@ $stmt->close();
                                 </div>
                             </div>
                         </div>
-                        <!-- Transaction History Table -->
+                        
+                        <?php if (isset($userRole) && strtolower($userRole) === 'admin'): ?>
+                        <!-- Recent Transactions for Admin -->
+                        <div class="row">
+                            <div class="col-lg-6 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Recent Transactions</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Property</th>
+                                                        <th>Buyer</th>
+                                                        <th>Seller</th>
+                                                        <th>Amount</th>
+                                                        <th>Date</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    $adminTransactionsQuery = "SELECT t.*, p.title as property_title, 
+                                                                             u1.name as buyer_name, u1.email as buyer_email,
+                                                                             u2.name as seller_name, u2.email as seller_email
+                                                                             FROM transactions t 
+                                                                             LEFT JOIN properties p ON t.property_id = p.id 
+                                                                             LEFT JOIN users u1 ON t.buyer_id = u1.id
+                                                                             LEFT JOIN users u2 ON p.user_id = u2.id
+                                                                             ORDER BY t.created_at DESC 
+                                                                             LIMIT 5";
+                                                    $adminTransactionsResult = $conn->query($adminTransactionsQuery);
+                                                    while ($transaction = $adminTransactionsResult->fetch_assoc()):
+                                                    ?>
+                                                        <tr>
+                                                            <td>
+                                                                <small><?php echo htmlspecialchars($transaction['property_title'] ?: 'N/A'); ?></small>
+                                                            </td>
+                                                            <td>
+                                                                <small>
+                                                                    <strong><?php echo htmlspecialchars($transaction['buyer_name'] ?: 'N/A'); ?></strong>
+                                                                    <br><?php echo htmlspecialchars($transaction['buyer_email'] ?: 'N/A'); ?>
+                                                                </small>
+                                                            </td>
+                                                            <td>
+                                                                <small>
+                                                                    <strong><?php echo htmlspecialchars($transaction['seller_name'] ?: 'N/A'); ?></strong>
+                                                                    <br><?php echo htmlspecialchars($transaction['seller_email'] ?: 'N/A'); ?>
+                                                                </small>
+                                                            </td>
+                                                            <td>
+                                                                <strong class="text-success">PKR <?php echo number_format($transaction['amount']); ?></strong>
+                                                            </td>
+                                                            <td>
+                                                                <small><?php echo date('M d', strtotime($transaction['created_at'])); ?></small>
+                                                            </td>
+                                                        </tr>
+                                                    <?php endwhile; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-lg-6 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">Recent Users</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Email</th>
+                                                        <th>Joined</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php
+                                                    $recentUsersQuery = "SELECT name, email, created_at FROM users WHERE role != 'admin' ORDER BY created_at DESC LIMIT 5";
+                                                    $recentUsersResult = $conn->query($recentUsersQuery);
+                                                    while ($user = $recentUsersResult->fetch_assoc()):
+                                                    ?>
+                                                        <tr>
+                                                            <td>
+                                                                <small><?php echo htmlspecialchars($user['name']); ?></small>
+                                                            </td>
+                                                            <td>
+                                                                <small><?php echo htmlspecialchars($user['email']); ?></small>
+                                                            </td>
+                                                            <td>
+                                                                <small><?php echo date('M d', strtotime($user['created_at'])); ?></small>
+                                                            </td>
+                                                        </tr>
+                                                    <?php endwhile; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <?php else: ?>
+                        <!-- Transaction History Table for Regular Users -->
                         <div class="card mt-4">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">Transaction History</h5>
@@ -652,6 +947,7 @@ $stmt->close();
                                 </div>
                             </div>
                         </div>
+                        <?php endif; ?>
                     </div>
                 </section>
 
@@ -780,6 +1076,7 @@ $stmt->close();
     </section>
 
     <!-- Properties Section -->
+    <?php if (!isset($userRole) || strtolower($userRole) !== 'admin'): ?>
     <section id="properties" class="dashboard-section">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -793,8 +1090,10 @@ $stmt->close();
 
         </div>
     </section>
+    <?php endif; ?>
 
     <!-- Saved Properties Section -->
+    <?php if (!isset($userRole) || strtolower($userRole) !== 'admin'): ?>
     <section id="saved" class="dashboard-section">
         <div class="container-fluid">
             <h2 class="section-title mb-4">Saved Properties</h2>
@@ -804,6 +1103,7 @@ $stmt->close();
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
 
     <!-- Notifications Section -->
@@ -837,6 +1137,7 @@ $stmt->close();
     </section>
 
     <!-- Rewards Section -->
+    <?php if (!isset($userRole) || strtolower($userRole) !== 'admin'): ?>
     <section id="rewards" class="dashboard-section">
         <div class="container-fluid">
             <h2 class="section-title mb-4">Referral Rewards</h2>
@@ -894,7 +1195,652 @@ $stmt->close();
             </div>
         </div>
     </section>
+    <?php endif; ?>
     <?php if (isset($userRole) && strtolower($userRole) === 'admin'): ?>
+<!-- All Properties Section (Admin Only) -->
+<section id="all-properties" class="dashboard-section">
+    <div class="container-fluid">
+        <h2 class="section-title mb-4">All Properties Management</h2>
+        
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <?php
+            // Fetch admin stats
+            $totalProperties = 0;
+            $activeProperties = 0;
+            $pendingProperties = 0;
+            $totalOwners = 0;
+            
+            // Total Properties
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM properties");
+            $stmt->execute();
+            $stmt->bind_result($totalProperties);
+            $stmt->fetch();
+            $stmt->close();
+            
+            // Active Properties
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE status = 'active'");
+            $stmt->execute();
+            $stmt->bind_result($activeProperties);
+            $stmt->fetch();
+            $stmt->close();
+            
+            // Pending Properties
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE listing = 'pending'");
+            $stmt->execute();
+            $stmt->bind_result($pendingProperties);
+            $stmt->fetch();
+            $stmt->close();
+            
+            // Total Property Owners
+            $stmt = $conn->prepare("SELECT COUNT(DISTINCT user_id) FROM properties");
+            $stmt->execute();
+            $stmt->bind_result($totalOwners);
+            $stmt->fetch();
+            $stmt->close();
+            ?>
+            
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-building fa-2x mb-2"></i>
+                    <h3><?php echo $totalProperties; ?></h3>
+                    <p class="mb-0">Total Properties</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                    <h3><?php echo $activeProperties; ?></h3>
+                    <p class="mb-0">Active Properties</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-clock fa-2x mb-2"></i>
+                    <h3><?php echo $pendingProperties; ?></h3>
+                    <p class="mb-0">Pending Properties</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-users fa-2x mb-2"></i>
+                    <h3><?php echo $totalOwners; ?></h3>
+                    <p class="mb-0">Property Owners</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="fas fa-filter me-2"></i>Filters
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="statusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">City</label>
+                                <select class="form-select" id="cityFilter">
+                                    <option value="">All Cities</option>
+                                    <option value="Karachi">Karachi</option>
+                                    <option value="Lahore">Lahore</option>
+                                    <option value="Islamabad">Islamabad</option>
+                                    <option value="Rawalpindi">Rawalpindi</option>
+                                    <option value="Faisalabad">Faisalabad</option>
+                                    <option value="Multan">Multan</option>
+                                    <option value="Peshawar">Peshawar</option>
+                                    <option value="Quetta">Quetta</option>
+                                    <option value="Sialkot">Sialkot</option>
+                                    <option value="Gujranwala">Gujranwala</option>
+                                    <option value="Hyderabad">Hyderabad</option>
+                                    <option value="Bahawalpur">Bahawalpur</option>
+                                    <option value="Sargodha">Sargodha</option>
+                                    <option value="Sukkur">Sukkur</option>
+                                    <option value="Abbottabad">Abbottabad</option>
+                                    <option value="Mardan">Mardan</option>
+                                    <option value="Rahim Yar Khan">Rahim Yar Khan</option>
+                                    <option value="Okara">Okara</option>
+                                    <option value="Dera Ghazi Khan">Dera Ghazi Khan</option>
+                                    <option value="Chiniot">Chiniot</option>
+                                    <option value="Jhelum">Jhelum</option>
+                                    <option value="Gujrat">Gujrat</option>
+                                    <option value="Larkana">Larkana</option>
+                                    <option value="Sheikhupura">Sheikhupura</option>
+                                    <option value="Mirpur Khas">Mirpur Khas</option>
+                                    <option value="Muzaffargarh">Muzaffargarh</option>
+                                    <option value="Kohat">Kohat</option>
+                                    <option value="Swat">Swat</option>
+                                    <option value="Gwadar">Gwadar</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Property Type</label>
+                                <select class="form-select" id="typeFilter">
+                                    <option value="">All Types</option>
+                                    <option value="House">House</option>
+                                    <option value="Flat">Flat</option>
+                                    <option value="Plot">Plot</option>
+                                    <option value="Commercial">Commercial</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Actions</label>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-primary" onclick="applyFilters()">
+                                        <i class="fas fa-search me-2"></i>Apply Filters
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="clearFilters()">
+                                        <i class="fas fa-times me-2"></i>Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Properties Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="allPropertiesTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Prop. Name</th>
+                                <th>Name</th>
+                                <th>Owner</th>
+                                <th>City</th>
+                                <th>Type</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            // Fetch all properties with user details
+                            $propertiesQuery = "SELECT p.*, u.name as owner_name, u.email as owner_email 
+                                             FROM properties p 
+                                             LEFT JOIN users u ON p.user_id = u.id 
+                                             ORDER BY p.created_at DESC";
+                            $propertiesResult = $conn->query($propertiesQuery);
+                            while ($property = $propertiesResult->fetch_assoc()):
+                            ?>
+                            <tr class="property-row" 
+                                data-status="<?php echo htmlspecialchars($property['status']); ?>"
+                                data-city="<?php echo htmlspecialchars($property['city']); ?>"
+                                data-type="<?php echo htmlspecialchars($property['type']); ?>"
+                                data-price="<?php echo $property['price']; ?>">
+                                <td><?php echo htmlspecialchars($property['id']); ?></td>
+                                <td><?php echo htmlspecialchars($property['title']); ?></td>
+                                <td>
+                                    <div>
+                                        <strong><?php echo htmlspecialchars($property['owner_name']); ?></strong>
+                                        <br><small class="text-muted"><?php echo htmlspecialchars($property['owner_email']); ?></small>
+                                    </div>
+                                </td>
+                                <td><?php echo htmlspecialchars($property['city']); ?></td>
+                                <td><?php echo htmlspecialchars($property['city']); ?></td>
+                                <td><?php echo htmlspecialchars($property['type']); ?></td>
+                                <td><strong>PKR <?php echo number_format($property['price']); ?></strong></td>
+                                <td>
+                                    <span class="badge bg-<?php echo $property['status'] === 'active' ? 'success' : ($property['status'] === 'pending' ? 'warning' : 'secondary'); ?>">
+                                        <?php echo ucfirst($property['status']); ?>
+                                    </span>
+                                </td>
+                                <td><?php echo date('M d, Y', strtotime($property['created_at'])); ?></td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="viewProperty(<?php echo $property['id']; ?>)"
+                                                title="View Property">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <!-- <button class="btn btn-sm btn-outline-warning" 
+                                                onclick="togglePropertyStatus(<?php echo $property['id']; ?>, '<?php echo $property['status']; ?>')"
+                                                title="<?php echo $property['status'] === 'active' ? 'Deactivate' : 'Activate'; ?>">
+                                            <i class="fas fa-<?php echo $property['status'] === 'active' ? 'pause' : 'play'; ?>"></i>
+                                        </button> -->
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="deleteProperty(<?php echo $property['id']; ?>)"
+                                                title="Delete Property">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- All Users Section (Admin Only) -->
+<section id="all-users" class="dashboard-section">
+    <div class="container-fluid">
+        <h2 class="section-title mb-4">All Users Management</h2>
+        
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <?php
+            // Fetch user stats
+            $totalUsers = 0;
+            $activeUsers = 0;
+            $adminUsers = 0;
+            $regularUsers = 0;
+            
+            // Total Users
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM users");
+            $stmt->execute();
+            $stmt->bind_result($totalUsers);
+            $stmt->fetch();
+            $stmt->close();
+            
+            // Admin Users
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE LOWER(role) = 'admin'");
+            $stmt->execute();
+            $stmt->bind_result($adminUsers);
+            $stmt->fetch();
+            $stmt->close();
+            
+            // Regular Users
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE LOWER(role) != 'admin'");
+            $stmt->execute();
+            $stmt->bind_result($regularUsers);
+            $stmt->fetch();
+            $stmt->close();
+            
+            // Active Users (users with properties)
+            $stmt = $conn->prepare("SELECT COUNT(DISTINCT user_id) FROM properties");
+            $stmt->execute();
+            $stmt->bind_result($activeUsers);
+            $stmt->fetch();
+            $stmt->close();
+            ?>
+            
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-users fa-2x mb-2"></i>
+                    <h3><?php echo $totalUsers; ?></h3>
+                    <p class="mb-0">Total Users</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-user-shield fa-2x mb-2"></i>
+                    <h3><?php echo $adminUsers; ?></h3>
+                    <p class="mb-0">Admin Users</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-user fa-2x mb-2"></i>
+                    <h3><?php echo $regularUsers; ?></h3>
+                    <p class="mb-0">Regular Users</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-building fa-2x mb-2"></i>
+                    <h3><?php echo $activeUsers; ?></h3>
+                    <p class="mb-0">Active Users</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="fas fa-filter me-2"></i>Filters
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Role</label>
+                                <select class="form-select" id="roleFilter">
+                                    <option value="">All Roles</option>
+                                    <option value="Admin">Admin</option>
+                                    <option value="User">Regular User</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="userStatusFilter">
+                                    <option value="">All Users</option>
+                                    <option value="active">Active (Has Properties)</option>
+                                    <option value="inactive">Inactive (No Properties)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Actions</label>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-primary" onclick="applyUserFilters()">
+                                        <i class="fas fa-search me-2"></i>Apply Filters
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="clearUserFilters()">
+                                        <i class="fas fa-times me-2"></i>Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="allUsersTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Role</th>
+                                <th>Properties</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            // Fetch all users with property count
+                            $usersQuery = "SELECT u.*, 
+                                          COUNT(p.id) as property_count,
+                                          MAX(p.created_at) as last_property_date
+                                          FROM users u 
+                                          LEFT JOIN properties p ON u.id = p.user_id 
+                                          GROUP BY u.id 
+                                          ORDER BY u.created_at DESC";
+                            $usersResult = $conn->query($usersQuery);
+                            while ($user = $usersResult->fetch_assoc()):
+                                $isActive = $user['property_count'] > 0;
+                            ?>
+                            <tr class="user-row" 
+                                data-id="<?php echo htmlspecialchars($user['id']); ?>"
+                                data-role="<?php echo htmlspecialchars($user['role']); ?>"
+                                data-status="<?php echo $isActive ? 'active' : 'inactive'; ?>">
+                                <td><?php echo htmlspecialchars($user['id']); ?></td>
+                                <td>
+                                    <div>
+                                        <strong><?php echo htmlspecialchars($user['name']); ?></strong>
+                                        <?php if ($user['cnic']): ?>
+                                            <br><small class="text-muted">CNIC: <?php echo htmlspecialchars($user['cnic']); ?></small>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td><?php echo htmlspecialchars($user['email']); ?></td>
+                                <td><?php echo htmlspecialchars($user['phone'] ?: 'N/A'); ?></td>
+                                <td>
+                                    <span class="badge bg-<?php echo strtolower($user['role']) === 'admin' ? 'danger' : 'primary'; ?>">
+                                        <?php echo ucfirst($user['role']); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong><?php echo $user['property_count']; ?></strong>
+                                    <?php if ($user['last_property_date']): ?>
+                                        <br><small class="text-muted">Last: <?php echo date('M d, Y', strtotime($user['last_property_date'])); ?></small>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo date('M d, Y', strtotime($user['created_at'])); ?></td>
+                                <td>
+                                    <span class="badge bg-<?php echo $isActive ? 'success' : 'secondary'; ?>">
+                                        <?php echo $isActive ? 'Active' : 'Inactive'; ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <!-- <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="viewUserDetails(<?php echo $user['id']; ?>)"
+                                                title="View User Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button> -->
+                                        <?php if ($user['role'] !== 'admin'): ?>
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="deleteUser(<?php echo $user['id']; ?>)"
+                                                title="Delete User">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <?php else: ?>
+                                        <span class="text-muted">-</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- All Transactions Section (Admin Only) -->
+<section id="all-transactions" class="dashboard-section">
+    <div class="container-fluid">
+        <h2 class="section-title mb-4">All Transactions Management</h2>
+        
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <?php
+            // Fetch transaction stats
+            $totalTransactions = 0;
+            $totalRevenue = 0;
+            $avgTransactionAmount = 0;
+            $recentTransactions = 0;
+            
+            // Total Transactions
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM transactions");
+            $stmt->execute();
+            $stmt->bind_result($totalTransactions);
+            $stmt->fetch();
+            $stmt->close();
+            
+            // Total Revenue
+            $stmt = $conn->prepare("SELECT SUM(amount) FROM transactions");
+            $stmt->execute();
+            $stmt->bind_result($totalRevenue);
+            $stmt->fetch();
+            $stmt->close();
+            
+            // Average Transaction Amount
+            $stmt = $conn->prepare("SELECT AVG(amount) FROM transactions");
+            $stmt->execute();
+            $stmt->bind_result($avgTransactionAmount);
+            $stmt->fetch();
+            $stmt->close();
+            
+            // Recent Transactions (last 30 days)
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM transactions WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+            $stmt->execute();
+            $stmt->bind_result($recentTransactions);
+            $stmt->fetch();
+            $stmt->close();
+            ?>
+            
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-credit-card fa-2x mb-2"></i>
+                    <h3><?php echo $totalTransactions; ?></h3>
+                    <p class="mb-0">Total Transactions</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
+                    <h3>PKR <?php echo number_format($totalRevenue); ?></h3>
+                    <p class="mb-0">Total Revenue</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-chart-line fa-2x mb-2"></i>
+                    <h3>PKR <?php echo number_format($avgTransactionAmount); ?></h3>
+                    <p class="mb-0">Avg. Transaction</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-calendar-day fa-2x mb-2"></i>
+                    <h3><?php echo $recentTransactions; ?></h3>
+                    <p class="mb-0">Last 30 Days</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="fas fa-filter me-2"></i>Filters
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Date Range</label>
+                                <select class="form-select" id="dateFilter">
+                                    <option value="">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                    <option value="year">This Year</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Amount Range</label>
+                                <select class="form-select" id="amountFilter">
+                                    <option value="">All Amounts</option>
+                                    <option value="0-100000">Under 100K</option>
+                                    <option value="100000-500000">100K - 500K</option>
+                                    <option value="500000-1000000">500K - 1M</option>
+                                    <option value="1000000+">Over 1M</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Actions</label>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-primary" onclick="applyTransactionFilters()">
+                                        <i class="fas fa-search me-2"></i>Apply Filters
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="clearTransactionFilters()">
+                                        <i class="fas fa-times me-2"></i>Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="allTransactionsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Property</th>
+                                <th>Buyer</th>
+                                <th>Seller</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            // Fetch all transactions with details
+                            $transactionsQuery = "SELECT t.*, p.title as property_title, 
+                                                u1.name as buyer_name, u1.email as buyer_email,
+                                                u2.name as seller_name, u2.email as seller_email
+                                                FROM transactions t 
+                                                LEFT JOIN properties p ON t.property_id = p.id 
+                                                LEFT JOIN users u1 ON t.buyer_id = u1.id
+                                                LEFT JOIN users u2 ON p.user_id = u2.id
+                                                ORDER BY t.created_at DESC";
+                            $transactionsResult = $conn->query($transactionsQuery);
+                            while ($transaction = $transactionsResult->fetch_assoc()):
+                            ?>
+                            <tr class="transaction-row" 
+                                data-amount="<?php echo $transaction['amount']; ?>"
+                                data-date="<?php echo $transaction['created_at']; ?>">
+                                <td><?php echo htmlspecialchars($transaction['id']); ?></td>
+                                <td>
+                                    <div>
+                                        <strong><?php echo htmlspecialchars($transaction['property_title'] ?: 'N/A'); ?></strong>
+                                        <?php if ($transaction['property_id']): ?>
+                                            <br><small class="text-muted">ID: <?php echo htmlspecialchars($transaction['property_id']); ?></small>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong><?php echo htmlspecialchars($transaction['buyer_name'] ?: 'N/A'); ?></strong>
+                                        <br><small class="text-muted"><?php echo htmlspecialchars($transaction['buyer_email'] ?: 'N/A'); ?></small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong><?php echo htmlspecialchars($transaction['seller_name'] ?: 'N/A'); ?></strong>
+                                        <br><small class="text-muted"><?php echo htmlspecialchars($transaction['seller_email'] ?: 'N/A'); ?></small>
+                                    </div>
+                                </td>
+                                <td><strong class="text-success">PKR <?php echo number_format($transaction['amount']); ?></strong></td>
+                                <td><?php echo date('M d, Y H:i', strtotime($transaction['created_at'])); ?></td>
+                                <td>
+                                    <span class="badge bg-success">Completed</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <!-- <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="viewTransactionDetails(<?php echo $transaction['id']; ?>)"
+                                                title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button> -->
+                                        <button class="btn btn-sm btn-outline-info" 
+                                                onclick="viewPropertyDetails(<?php echo $transaction['property_id']; ?>)"
+                                                title="View Property">
+                                            <i class="fas fa-building"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Buy Requests Section (Admin Only) -->
 <section id="buy-requests" class="dashboard-section">
     <div class="container-fluid">
@@ -946,6 +1892,270 @@ $stmt->close();
         </div>
     </div>
 </section>
+
+<!-- Property Approvals Section (Admin Only) -->
+<section id="property-approvals" class="dashboard-section">
+<div class="container-fluid">
+        <h2 class="section-title mb-4">Property Approval Management</h2>
+        
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+        <?php
+            // Fetch approval stats
+            $pendingApprovals = 0;
+            $approvedToday = 0;
+            $rejectedToday = 0;
+            $totalApproved = 0;
+            
+            // Pending Approvals
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE listing = 'pending'");
+            $stmt->execute();
+            $stmt->bind_result($pendingApprovals);
+            $stmt->fetch();
+            $stmt->close();
+            
+            // Approved Today
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE listing = 'approved' AND DATE(updated_at) = CURDATE()");
+            $stmt->execute();
+            $stmt->bind_result($approvedToday);
+            $stmt->fetch();
+            $stmt->close();
+            
+            // Rejected Today
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE listing = 'rejected' AND DATE(updated_at) = CURDATE()");
+            $stmt->execute();
+            $stmt->bind_result($rejectedToday);
+            $stmt->fetch();
+            $stmt->close();
+            
+            // Total Approved
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE listing = 'approved'");
+            $stmt->execute();
+            $stmt->bind_result($totalApproved);
+            $stmt->fetch();
+            $stmt->close();
+            ?>
+            
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-clock fa-2x mb-2 text-warning"></i>
+                    <h3><?php echo $pendingApprovals; ?></h3>
+                    <p class="mb-0">Pending Approvals</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-check-circle fa-2x mb-2 text-success"></i>
+                    <h3><?php echo $approvedToday; ?></h3>
+                    <p class="mb-0">Approved Today</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-times-circle fa-2x mb-2 text-danger"></i>
+                    <h3><?php echo $rejectedToday; ?></h3>
+                    <p class="mb-0">Rejected Today</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center">
+                    <i class="fas fa-thumbs-up fa-2x mb-2 text-primary"></i>
+                    <h3><?php echo $totalApproved; ?></h3>
+                    <p class="mb-0">Total Approved</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="fas fa-filter me-2"></i>Filters
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="approvalStatusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Property Type</label>
+                                <select class="form-select" id="approvalTypeFilter">
+                                    <option value="">All Types</option>
+                                    <option value="House">House</option>
+                                    <option value="Flat">Flat</option>
+                                    <option value="Plot">Plot</option>
+                                    <option value="Commercial">Commercial</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Price Range</label>
+                                <select class="form-select" id="approvalPriceFilter">
+                                    <option value="">All Prices</option>
+                                    <option value="0-1000000">Under 1M</option>
+                                    <option value="1000000-5000000">1M - 5M</option>
+                                    <option value="5000000-10000000">5M - 10M</option>
+                                    <option value="10000000+">Over 10M</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Actions</label>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-primary" onclick="applyApprovalFilters()">
+                                        <i class="fas fa-search me-2"></i>Apply Filters
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="clearApprovalFilters()">
+                                        <i class="fas fa-times me-2"></i>Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Properties Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list me-2"></i>Property Approval Queue
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="approvalTable">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" id="selectAllCheckbox">
+                                </th>
+                                <th>ID</th>
+                                <th>Property</th>
+                                <th>Owner</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            // Fetch properties for approval with user details
+                            $approvalQuery = "SELECT p.*, u.name as owner_name, u.email as owner_email, u.phone as owner_phone
+                                           FROM properties p 
+                                           LEFT JOIN users u ON p.user_id = u.id 
+                                           ORDER BY 
+                                               CASE WHEN p.listing = 'pending' THEN 1 ELSE 2 END,
+                                               p.created_at DESC";
+                            $approvalResult = $conn->query($approvalQuery);
+                            while ($property = $approvalResult->fetch_assoc()):
+                                $statusClass = $property['listing'] === 'approved' ? 'success' : 
+                                            ($property['listing'] === 'pending' ? 'warning' : 'danger');
+                            ?>
+                            <tr class="approval-row" 
+                                data-id="<?php echo $property['id']; ?>"
+                                data-listing="<?php echo htmlspecialchars($property['listing']); ?>"
+                                data-type="<?php echo htmlspecialchars($property['type']); ?>"
+                                data-city="<?php echo htmlspecialchars($property['city']); ?>"
+                                data-price="<?php echo $property['price']; ?>">
+                                <td>
+                                    <?php if ($property['listing'] === 'pending'): ?>
+                                        <input type="checkbox" class="approval-checkbox" value="<?php echo $property['id']; ?>">
+                                    <?php else: ?>
+                                        <span class="text-muted">-</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo htmlspecialchars($property['id']); ?></td>
+                                <td>
+                                    <div>
+                                        <strong><?php echo htmlspecialchars($property['title']); ?></strong>
+                                        <?php if ($property['description']): ?>
+                                            <br><small class="text-muted"><?php echo htmlspecialchars(substr($property['description'], 0, 50)) . '...'; ?></small>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong><?php echo htmlspecialchars($property['owner_name']); ?></strong>
+                                        <br><small class="text-muted"><?php echo htmlspecialchars($property['owner_email']); ?></small>
+                                        <?php if ($property['owner_phone']): ?>
+                                            <br><small class="text-muted"><?php echo htmlspecialchars($property['owner_phone']); ?></small>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info"><?php echo htmlspecialchars($property['type']); ?></span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong><?php echo htmlspecialchars($property['city']); ?></strong>
+                                        <?php if ($property['area']): ?>
+                                            <br><small class="text-muted"><?php echo htmlspecialchars($property['area']); ?></small>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong class="text-success">PKR <?php echo number_format($property['price']); ?></strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-<?php echo $statusClass; ?>">
+                                        <?php echo ucfirst($property['listing']); ?>
+                                    </span>
+                                </td>
+                                <td><?php echo date('M d, Y H:i', strtotime($property['created_at'])); ?></td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="viewPropertyForApproval(<?php echo $property['id']; ?>)"
+                                                title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <?php if ($property['listing'] === 'pending'): ?>
+                                            <button class="btn btn-sm btn-outline-success" 
+                                                    onclick="approveProperty(<?php echo $property['id']; ?>)"
+                                                    title="Approve Property">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="rejectProperty(<?php echo $property['id']; ?>)"
+                                                    title="Reject Property">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        <?php elseif ($property['listing'] === 'approved'): ?>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="toggleListingStatus(<?php echo $property['id']; ?>, '<?php echo $property['listing']; ?>')"
+                                                    title="Hide Property">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        <?php elseif ($property['listing'] === 'rejected'): ?>
+                                            <button class="btn btn-sm btn-outline-success" 
+                                                    onclick="toggleListingStatus(<?php echo $property['id']; ?>, '<?php echo $property['listing']; ?>')"
+                                                    title="Show Property">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <script>
 function showLoading(message) {
     $('#loadingText').text(message || 'Processing request...');
@@ -998,6 +2208,349 @@ function handleBuyRequest(id, action) {
         }
     });
 }
+
+// Property Approval Functions
+function approveProperty(id) {
+    console.log('Approving property with ID:', id);
+    if (!id || id <= 0) {
+        alert('Invalid property ID');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to approve this property?')) return;
+    
+    showLoading('Approving property...');
+    $('.btn').prop('disabled', true);
+    
+    $.ajax({
+        url: '../backend/approve-property.php',
+        method: 'POST',
+        data: { property_id: id, action: 'approve' },
+        dataType: 'json',
+        success: function(res) {
+            hideLoading();
+            $('.btn').prop('disabled', false);
+            
+            if(res.success) {
+                updatePropertyRow(id, 'approved');
+                alert(res.message || 'Property approved successfully.');
+            } else {
+                alert(res.message || 'Failed to approve property.');
+            }
+        },
+        error: function() { 
+            hideLoading();
+            $('.btn').prop('disabled', false);
+            alert('Error processing approval.'); 
+        }
+    });
+}
+
+function rejectProperty(id) {
+    console.log('Rejecting property with ID:', id);
+    if (!id || id <= 0) {
+        alert('Invalid property ID');
+        return;
+    }
+    
+    const reason = prompt('Please provide a reason for rejection (optional):');
+    if (reason === null) return; // User cancelled
+    
+    showLoading('Rejecting property...');
+    $('.btn').prop('disabled', true);
+    
+    $.ajax({
+        url: '../backend/approve-property.php',
+        method: 'POST',
+        data: { 
+            property_id: id, 
+            action: 'reject',
+            reason: reason || ''
+        },
+        dataType: 'json',
+        success: function(res) {
+            hideLoading();
+            $('.btn').prop('disabled', false);
+            
+            if(res.success) {
+                updatePropertyRow(id, 'rejected');
+                alert(res.message || 'Property rejected successfully.');
+            } else {
+                alert(res.message || 'Failed to reject property.');
+            }
+        },
+        error: function() { 
+            hideLoading();
+            $('.btn').prop('disabled', false);
+            alert('Error processing rejection.'); 
+        }
+    });
+}
+
+function viewPropertyForApproval(id) {
+    // Open property details in a new window or modal
+    window.open('../view-property-detail.php?id=' + id, '_blank');
+}
+
+function updatePropertyRow(propertyId, newListingStatus) {
+    // Find the table row for this property
+    const row = $(`tr[data-id="${propertyId}"]`);
+    if (row.length === 0) return;
+    
+    // Update the listing status in the data attribute
+    row.attr('data-status', newListingStatus);
+    
+    // Update the status badge
+    const statusCell = row.find('td:eq(7)'); // Status column
+    let statusClass = '';
+    let statusText = '';
+    
+    switch(newListingStatus) {
+        case 'approved':
+            statusClass = 'success';
+            statusText = 'Approved';
+            break;
+        case 'rejected':
+            statusClass = 'danger';
+            statusText = 'Rejected';
+            break;
+        case 'pending':
+            statusClass = 'warning';
+            statusText = 'Pending';
+            break;
+    }
+    
+    statusCell.html(`<span class="badge bg-${statusClass}">${statusText}</span>`);
+    
+    // Update the action buttons
+    const actionCell = row.find('td:last-child .btn-group');
+    let newButtons = '';
+    
+    if (newListingStatus === 'pending') {
+        newButtons = `
+            <button class="btn btn-sm btn-outline-success" 
+                    onclick="approveProperty(${propertyId})"
+                    title="Approve Property">
+                <i class="fas fa-check"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" 
+                    onclick="rejectProperty(${propertyId})"
+                    title="Reject Property">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+    } else if (newListingStatus === 'approved') {
+        newButtons = `
+            <button class="btn btn-sm btn-outline-primary" 
+                    onclick="viewPropertyForApproval(${propertyId})"
+                    title="View Details">
+                <i class="fas fa-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" 
+                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                    title="Hide Property">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+    } else if (newListingStatus === 'rejected') {
+        newButtons = `
+            <button class="btn btn-sm btn-outline-primary" 
+                    onclick="viewPropertyForApproval(${propertyId})"
+                    title="View Details">
+                <i class="fas fa-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-success" 
+                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                    title="Show Property">
+                <i class="fas fa-check"></i>
+            </button>
+        `;
+    }
+    
+    actionCell.html(newButtons);
+    
+    // Update the checkbox if it exists
+    const checkboxCell = row.find('td:first-child');
+    if (newListingStatus === 'pending') {
+        checkboxCell.html('<input type="checkbox" class="approval-checkbox" value="' + propertyId + '">');
+    } else {
+        checkboxCell.html('<span class="text-muted">-</span>');
+    }
+}
+
+function toggleListingStatus(id, currentListing) {
+    const newListing = currentListing === 'approved' ? 'rejected' : 'approved';
+    const action = currentListing === 'approved' ? 'hide' : 'show';
+    
+    if (!confirm('Are you sure you want to ' + action + ' this property?')) return;
+    
+    showLoading(action.charAt(0).toUpperCase() + action.slice(1) + ' property...');
+    $('.btn').prop('disabled', true);
+    
+    $.ajax({
+        url: '../backend/toggle-listing-status.php',
+        method: 'POST',
+        data: { property_id: id, listing: newListing },
+        dataType: 'json',
+        success: function(res) {
+            hideLoading();
+            $('.btn').prop('disabled', false);
+            
+            if(res.success) {
+                updatePropertyRow(id, newListing);
+                alert(res.message || 'Property visibility updated successfully.');
+            } else {
+                alert(res.message || 'Failed to update property visibility.');
+            }
+        },
+        error: function() { 
+            hideLoading();
+            $('.btn').prop('disabled', false);
+            alert('Error updating property visibility.'); 
+        }
+    });
+}
+
+// Bulk Actions
+function bulkApprove() {
+    const selectedIds = getSelectedApprovalIds();
+    if (selectedIds.length === 0) {
+        alert('Please select properties to approve.');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to approve ' + selectedIds.length + ' properties?')) return;
+    
+    showLoading('Approving selected properties...');
+    $('.btn').prop('disabled', true);
+    
+    $.ajax({
+        url: '../backend/bulk-approve-properties.php',
+        method: 'POST',
+        data: { property_ids: selectedIds, action: 'approve' },
+        dataType: 'json',
+        success: function(res) {
+            hideLoading();
+            $('.btn').prop('disabled', false);
+            
+            if(res.success) {
+                alert(res.message || 'Properties approved successfully.');
+                location.reload();
+            } else {
+                alert(res.message || 'Failed to approve properties.');
+            }
+        },
+        error: function() { 
+            hideLoading();
+            $('.btn').prop('disabled', false);
+            alert('Error processing bulk approval.'); 
+        }
+    });
+}
+
+function bulkReject() {
+    const selectedIds = getSelectedApprovalIds();
+    if (selectedIds.length === 0) {
+        alert('Please select properties to reject.');
+        return;
+    }
+    
+    const reason = prompt('Please provide a reason for rejection (optional):');
+    if (reason === null) return; // User cancelled
+    
+    if (!confirm('Are you sure you want to reject ' + selectedIds.length + ' properties?')) return;
+    
+    showLoading('Rejecting selected properties...');
+    $('.btn').prop('disabled', true);
+    
+    $.ajax({
+        url: '../backend/bulk-approve-properties.php',
+        method: 'POST',
+        data: { 
+            property_ids: selectedIds, 
+            action: 'reject',
+            reason: reason || ''
+        },
+        dataType: 'json',
+        success: function(res) {
+            hideLoading();
+            $('.btn').prop('disabled', false);
+            
+            if(res.success) {
+                alert(res.message || 'Properties rejected successfully.');
+                location.reload();
+            } else {
+                alert(res.message || 'Failed to reject properties.');
+            }
+        },
+        error: function() { 
+            hideLoading();
+            $('.btn').prop('disabled', false);
+            alert('Error processing bulk rejection.'); 
+        }
+    });
+}
+
+function bulkView() {
+    const selectedIds = getSelectedApprovalIds();
+    if (selectedIds.length === 0) {
+        alert('Please select properties to view.');
+        return;
+    }
+    
+    // Open multiple properties in new tabs
+    selectedIds.forEach(id => {
+        window.open('../view-property-detail.php?id=' + id, '_blank');
+    });
+}
+
+function getSelectedApprovalIds() {
+    const selectedIds = [];
+    $('.approval-checkbox:checked').each(function() {
+        selectedIds.push($(this).val());
+    });
+    return selectedIds;
+}
+
+// Filter Functions
+function applyApprovalFilters() {
+    const status = $('#approvalStatusFilter').val();
+    const type = $('#approvalTypeFilter').val();
+    const price = $('#approvalPriceFilter').val();
+    
+    $('.approval-row').each(function() {
+        let show = true;
+        const row = $(this);
+        
+        if (status && row.data('listing') !== status) show = false;
+        if (type && row.data('type') !== type) show = false;
+        if (price) {
+            const rowPrice = parseInt(row.data('price'));
+            const [min, max] = price.split('-').map(p => p === '+' ? Infinity : parseInt(p));
+            if (rowPrice < min || rowPrice > max) show = false;
+        }
+        
+        row.toggle(show);
+    });
+}
+
+function clearApprovalFilters() {
+    $('#approvalStatusFilter, #approvalTypeFilter, #approvalPriceFilter').val('');
+    $('.approval-row').show();
+}
+
+// Select All Functionality
+$(document).ready(function() {
+    $('#selectAllCheckbox').change(function() {
+        $('.approval-checkbox').prop('checked', $(this).is(':checked'));
+    });
+    
+    $('.approval-checkbox').change(function() {
+        const totalCheckboxes = $('.approval-checkbox').length;
+        const checkedCheckboxes = $('.approval-checkbox:checked').length;
+        $('#selectAllCheckbox').prop('checked', totalCheckboxes === checkedCheckboxes);
+    });
+});
 </script>
 <?php endif; ?>
     <!-- Transactions Section (All Users) -->
@@ -1302,6 +2855,408 @@ function handleBuyRequest(id, action) {
     </script>
 
     <script>
+        // Global functions for admin properties
+        function viewProperty(id) {
+            console.log('Viewing property with ID:', id);
+            if (id) {
+                const url = `../view-property-detail.php?id=${id}`;
+                console.log('Opening URL:', url);
+                window.open(url, '_blank');
+            } else {
+                iziToast.error({
+                    title: 'Error',
+                    message: 'Invalid property ID',
+                    position: 'topRight'
+                });
+            }
+        }
+
+        function togglePropertyStatus(id, currentStatus) {
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+            const action = currentStatus === 'active' ? 'deactivate' : 'activate';
+            
+            if (confirm(`Are you sure you want to ${action} this property?`)) {
+                $.ajax({
+                    url: '../backend/toggle-property-status.php',
+                    method: 'POST',
+                    data: { 
+                        id: id, 
+                        status: newStatus 
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            iziToast.success({
+                                title: 'Success',
+                                message: response.message,
+                                position: 'topRight'
+                            });
+                            // Refresh the page to update all statuses
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                message: response.message,
+                                position: 'topRight'
+                            });
+                        }
+                    },
+                    error: function() {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Error updating property status. Please try again.',
+                            position: 'topRight'
+                        });
+                    }
+                });
+            }
+        }
+
+        function deleteProperty(id) {
+            if (confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
+                $.ajax({
+                    url: '../backend/delete-property.php',
+                    method: 'POST',
+                    data: { id: id },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            iziToast.success({
+                                title: 'Success',
+                                message: 'Property deleted successfully!',
+                                position: 'topRight'
+                            });
+                            // Remove the row from the table
+                            $(`.property-row[data-id="${id}"]`).fadeOut();
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                message: response.message,
+                                position: 'topRight'
+                            });
+                        }
+                    },
+                    error: function() {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Error deleting property. Please try again.',
+                            position: 'topRight'
+                        });
+                    }
+                });
+            }
+        }
+
+        function applyFilters() {
+            const status = $('#statusFilter').val();
+            const city = $('#cityFilter').val();
+            const type = $('#typeFilter').val();
+
+            $('.property-row').each(function() {
+                let show = true;
+                const $row = $(this);
+
+                // Status filter
+                if (status && $row.data('status') !== status) {
+                    show = false;
+                }
+
+                // City filter
+                if (city && $row.data('city') !== city) {
+                    show = false;
+                }
+
+                // Type filter
+                if (type && $row.data('type') !== type) {
+                    show = false;
+                }
+
+                if (show) {
+                    $row.show();
+                } else {
+                    $row.hide();
+                }
+            });
+
+            // Show message if no results
+            const visibleRows = $('.property-row:visible').length;
+            if (visibleRows === 0) {
+                iziToast.info({
+                    title: 'No Results',
+                    message: 'No properties match your filters.',
+                    position: 'topRight'
+                });
+            }
+        }
+
+        function clearFilters() {
+            $('#statusFilter').val('');
+            $('#cityFilter').val('');
+            $('#typeFilter').val('');
+            $('.property-row').show();
+        }
+
+        // User Management Functions
+        function applyUserFilters() {
+            const role = $('#roleFilter').val();
+            const status = $('#userStatusFilter').val();
+
+            $('.user-row').each(function() {
+                let show = true;
+                const $row = $(this);
+
+                // Role filter
+                if (role && $row.data('role') !== role) {
+                    show = false;
+                }
+
+                // Status filter
+                if (status && $row.data('status') !== status) {
+                    show = false;
+                }
+
+                if (show) {
+                    $row.show();
+                } else {
+                    $row.hide();
+                }
+            });
+
+            // Show message if no results
+            const visibleRows = $('.user-row:visible').length;
+            if (visibleRows === 0) {
+                iziToast.info({
+                    title: 'No Results',
+                    message: 'No users match your filters.',
+                    position: 'topRight'
+                });
+            }
+        }
+
+        function clearUserFilters() {
+            $('#roleFilter').val('');
+            $('#userStatusFilter').val('');
+            $('.user-row').show();
+        }
+
+        function viewUserDetails(userId) {
+            // Show user details in a modal or redirect to user profile
+            iziToast.info({
+                title: 'User Details',
+                message: 'User details feature coming soon!',
+                position: 'topRight'
+            });
+        }
+
+        function viewUserProperties(userId) {
+            // Filter properties table to show only this user's properties
+            iziToast.info({
+                title: 'User Properties',
+                message: 'Viewing properties for user ID: ' + userId,
+                position: 'topRight'
+            });
+            // You can implement this to filter the properties table
+        }
+
+        function toggleUserRole(userId, currentRole) {
+            const newRole = currentRole === 'admin' ? 'user' : 'admin';
+            const action = currentRole === 'admin' ? 'remove admin' : 'make admin';
+            
+            if (confirm(`Are you sure you want to ${action} for this user?`)) {
+                $.ajax({
+                    url: '../backend/toggle-user-role.php',
+                    method: 'POST',
+                    data: { 
+                        id: userId, 
+                        role: newRole 
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            iziToast.success({
+                                title: 'Success',
+                                message: response.message,
+                                position: 'topRight'
+                            });
+                            // Refresh the page to update all roles
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                message: response.message,
+                                position: 'topRight'
+                            });
+                        }
+                    },
+                    error: function() {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Error updating user role. Please try again.',
+                            position: 'topRight'
+                        });
+                    }
+                });
+            }
+        }
+
+        function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user? This action cannot be undone and will also delete all their properties.')) {
+                $.ajax({
+                    url: '../backend/delete-user.php',
+                    method: 'POST',
+                    data: { id: userId },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            iziToast.success({
+                                title: 'Success',
+                                message: 'User deleted successfully!',
+                                position: 'topRight'
+                            });
+                            // Remove the row from the table
+                            $(`.user-row[data-id="${userId}"]`).fadeOut(400, function() {
+                                $(this).remove();
+                                // Update stats immediately after row removal
+                                updateUserStats();
+                            });
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                message: response.message,
+                                position: 'topRight'
+                            });
+                        }
+                    },
+                    error: function() {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Error deleting user. Please try again.',
+                            position: 'topRight'
+                        });
+                    }
+                });
+            }
+        }
+
+        function updateUserStats() {
+            // Update the stats cards with new counts
+            const totalUsers = $('.user-row').length; // Count all rows, not just visible ones
+            const adminUsers = $('.user-row[data-role="admin"]').length;
+            const regularUsers = $('.user-row[data-role="user"]').length;
+            const activeUsers = $('.user-row[data-status="active"]').length;
+            
+            console.log('Updating stats:', { totalUsers, adminUsers, regularUsers, activeUsers });
+            
+            // Update stats cards if they exist
+            $('.stats-card h3').each(function() {
+                const cardText = $(this).next('p').text().toLowerCase();
+                if (cardText.includes('total users')) {
+                    $(this).text(totalUsers);
+                } else if (cardText.includes('admin users')) {
+                    $(this).text(adminUsers);
+                } else if (cardText.includes('regular users')) {
+                    $(this).text(regularUsers);
+                } else if (cardText.includes('active users')) {
+                    $(this).text(activeUsers);
+                }
+            });
+        }
+
+        // Transaction Management Functions
+        function applyTransactionFilters() {
+            const dateFilter = $('#dateFilter').val();
+            const amountFilter = $('#amountFilter').val();
+
+            $('.transaction-row').each(function() {
+                let show = true;
+                const $row = $(this);
+                const amount = parseInt($row.data('amount'));
+                const date = new Date($row.data('date'));
+
+                // Date filter
+                if (dateFilter) {
+                    const now = new Date();
+                    let filterDate = new Date();
+                    
+                    switch (dateFilter) {
+                        case 'today':
+                            filterDate.setDate(now.getDate() - 1);
+                            break;
+                        case 'week':
+                            filterDate.setDate(now.getDate() - 7);
+                            break;
+                        case 'month':
+                            filterDate.setMonth(now.getMonth() - 1);
+                            break;
+                        case 'year':
+                            filterDate.setFullYear(now.getFullYear() - 1);
+                            break;
+                    }
+                    
+                    if (date < filterDate) {
+                        show = false;
+                    }
+                }
+
+                // Amount filter
+                if (amountFilter) {
+                    const [min, max] = amountFilter.split('-').map(Number);
+                    if (amountFilter === '1000000+') {
+                        if (amount < 1000000) show = false;
+                    } else if (amount < min || amount > max) {
+                        show = false;
+                    }
+                }
+
+                if (show) {
+                    $row.show();
+                } else {
+                    $row.hide();
+                }
+            });
+
+            // Show message if no results
+            const visibleRows = $('.transaction-row:visible').length;
+            if (visibleRows === 0) {
+                iziToast.info({
+                    title: 'No Results',
+                    message: 'No transactions match your filters.',
+                    position: 'topRight'
+                });
+            }
+        }
+
+        function clearTransactionFilters() {
+            $('#dateFilter').val('');
+            $('#amountFilter').val('');
+            $('.transaction-row').show();
+        }
+
+        function viewTransactionDetails(transactionId) {
+            iziToast.info({
+                title: 'Transaction Details',
+                message: 'Transaction details feature coming soon!',
+                position: 'topRight'
+            });
+        }
+
+        function viewPropertyDetails(propertyId) {
+            if (propertyId) {
+                const url = `../view-property-detail.php?id=${propertyId}`;
+                window.open(url, '_blank');
+            } else {
+                iziToast.error({
+                    title: 'Error',
+                    message: 'Property not found',
+                    position: 'topRight'
+                });
+            }
+        }
+
         // Apply same validation as signup form
         $(document).ready(function() {
             // Phone field validation (same as signup)
@@ -1377,7 +3332,10 @@ function handleBuyRequest(id, action) {
         });
 
         $(document).ready(function() {
+            // Only fetch saved properties for non-admin users
+            <?php if (!isset($userRole) || strtolower($userRole) !== 'admin'): ?>
             fetchSavedProperties();
+            <?php endif; ?>
 
             // ----------------- Fetch Profile -------------------
             $.ajax({
@@ -1955,7 +3913,317 @@ function handleBuyRequest(id, action) {
             this.querySelector("i").classList.toggle("fa-eye-slash");
         });
 
-        });
+        // Admin Properties Functions
+        function applyFilters() {
+            const status = $('#statusFilter').val();
+            const city = $('#cityFilter').val();
+            const type = $('#typeFilter').val();
+
+            $('.property-row').each(function() {
+                let show = true;
+                const $row = $(this);
+
+                // Status filter
+                if (status && $row.data('status') !== status) {
+                    show = false;
+                }
+
+                // City filter
+                if (city && $row.data('city') !== city) {
+                    show = false;
+                }
+
+                // Type filter
+                if (type && $row.data('type') !== type) {
+                    show = false;
+                }
+
+                if (show) {
+                    $row.show();
+                } else {
+                    $row.hide();
+                }
+            });
+
+            // Show message if no results
+            const visibleRows = $('.property-row:visible').length;
+            if (visibleRows === 0) {
+                iziToast.info({
+                    title: 'No Results',
+                    message: 'No properties match your filters.',
+                    position: 'topRight'
+                });
+            }
+        }
+
+        function clearFilters() {
+            $('#statusFilter').val('');
+            $('#cityFilter').val('');
+            $('#typeFilter').val('');
+            $('.property-row').show();
+        }
+
+        function viewProperty(id) {
+            console.log('Viewing property with ID:', id);
+            if (id) {
+                const url = `../view-property-detail.php?id=${id}`;
+                console.log('Opening URL:', url);
+                window.open(url, '_blank');
+            } else {
+                iziToast.error({
+                    title: 'Error',
+                    message: 'Invalid property ID',
+                    position: 'topRight'
+                });
+            }
+        }
+
+        function togglePropertyStatus(id, currentStatus) {
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+            const action = currentStatus === 'active' ? 'deactivate' : 'activate';
+            
+            if (confirm(`Are you sure you want to ${action} this property?`)) {
+                $.ajax({
+                    url: '../backend/toggle-property-status.php',
+                    method: 'POST',
+                    data: { 
+                        id: id, 
+                        status: newStatus 
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            iziToast.success({
+                                title: 'Success',
+                                message: response.message,
+                                position: 'topRight'
+                            });
+                            // Refresh the page to update all statuses
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                message: response.message,
+                                position: 'topRight'
+                            });
+                        }
+                    },
+                    error: function() {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Error updating property status. Please try again.',
+                            position: 'topRight'
+                        });
+                    }
+                });
+            }
+        }
+
+        function deleteProperty(id) {
+            if (confirm('Are you sure you want to delete this property? This action cannot be undone.')) {
+                $.ajax({
+                    url: '../backend/delete-property.php',
+                    method: 'POST',
+                    data: { id: id },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            iziToast.success({
+                                title: 'Success',
+                                message: 'Property deleted successfully!',
+                                position: 'topRight'
+                            });
+                            // Remove the row from the table
+                            $(`.property-row[data-id="${id}"]`).fadeOut();
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                message: response.message,
+                                position: 'topRight'
+                            });
+                        }
+                    },
+                    error: function() {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Error deleting property. Please try again.',
+                            position: 'topRight'
+                        });
+                    }
+                });
+            }
+        }
+
+        // Property Approval Functions
+        function approveProperty(id) {
+            if (confirm('Are you sure you want to approve this property?')) {
+                $.ajax({
+                    url: '../backend/approve-property.php',
+                    method: 'POST',
+                    data: { 
+                        id: id, 
+                        action: 'approve' 
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            iziToast.success({
+                                title: 'Success',
+                                message: 'Property approved successfully!',
+                                position: 'topRight'
+                            });
+                            // Refresh the page to update all statuses
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                message: response.message || 'Failed to approve property.',
+                                position: 'topRight'
+                            });
+                        }
+                    },
+                    error: function() {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Error approving property. Please try again.',
+                            position: 'topRight'
+                        });
+                    }
+                });
+            }
+        }
+
+        function rejectProperty(id) {
+            if (confirm('Are you sure you want to reject this property?')) {
+                $.ajax({
+                    url: '../backend/approve-property.php',
+                    method: 'POST',
+                    data: { 
+                        id: id, 
+                        action: 'reject' 
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            iziToast.success({
+                                title: 'Success',
+                                message: 'Property rejected successfully!',
+                                position: 'topRight'
+                            });
+                            // Refresh the page to update all statuses
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                message: response.message || 'Failed to reject property.',
+                                position: 'topRight'
+                            });
+                        }
+                    },
+                    error: function() {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Error rejecting property. Please try again.',
+                            position: 'topRight'
+                        });
+                    }
+                });
+            }
+        }
+
+        function changeApprovalStatus(id, currentStatus) {
+            const newStatus = currentStatus === 'approved' ? 'rejected' : 'approved';
+            const action = currentStatus === 'approved' ? 'reject' : 'approve';
+            
+            if (confirm(`Are you sure you want to ${action} this property?`)) {
+                $.ajax({
+                    url: '../backend/approve-property.php',
+                    method: 'POST',
+                    data: { 
+                        id: id, 
+                        action: action 
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            iziToast.success({
+                                title: 'Success',
+                                message: response.message,
+                                position: 'topRight'
+                            });
+                            // Refresh the page to update all statuses
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            iziToast.error({
+                                title: 'Error',
+                                message: response.message || 'Failed to update approval status.',
+                                position: 'topRight'
+                            });
+                        }
+                    },
+                    error: function() {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Error updating approval status. Please try again.',
+                            position: 'topRight'
+                        });
+                    }
+                });
+            }
+        }
+
+        function applyApprovalFilters() {
+            const status = $('#approvalStatusFilter').val();
+            const type = $('#approvalTypeFilter').val();
+
+            $('.approval-row').each(function() {
+                let show = true;
+                const $row = $(this);
+                const rowListing = $row.data('listing');
+                const rowType = $row.data('type');
+
+                // Status filter
+                if (status && rowListing !== listing) {
+                    show = false;
+                }
+
+                // Type filter
+                if (type && rowType !== type) {
+                    show = false;
+                }
+
+                if (show) {
+                    $row.show();
+                } else {
+                    $row.hide();
+                }
+            });
+
+            // Show message if no results
+            const visibleRows = $('.approval-row:visible').length;
+            if (visibleRows === 0) {
+                iziToast.info({
+                    title: 'No Results',
+                    message: 'No properties match your filters.',
+                    position: 'topRight'
+                });
+            }
+        }
+
+        function clearApprovalFilters() {
+            $('#approvalStatusFilter').val('');
+            $('#approvalTypeFilter').val('');
+            $('.approval-row').show();
+        }
+
     </script>
 
 

@@ -24,54 +24,44 @@ if (!$user || strtolower($user['role']) !== 'admin') {
     exit;
 }
 
-// Check if property ID is provided
+// Check if property ID and status are provided
 if (!isset($_POST['id']) || !is_numeric($_POST['id'])) {
     echo json_encode(['success' => false, 'message' => 'Invalid property ID']);
     exit;
 }
 
-$propertyId = (int)$_POST['id'];
+if (!isset($_POST['status']) || !in_array($_POST['status'], ['active', 'inactive', 'pending'])) {
+    echo json_encode(['success' => false, 'message' => 'Invalid status']);
+    exit;
+}
 
-// Get property details first (for file deletion)
-$propertyQuery = "SELECT thumbnail, images FROM properties WHERE id = ?";
-$stmt = mysqli_prepare($conn, $propertyQuery);
+$propertyId = (int)$_POST['id'];
+$newStatus = $_POST['status'];
+
+// Check if property exists
+$checkQuery = "SELECT id FROM properties WHERE id = ?";
+$stmt = mysqli_prepare($conn, $checkQuery);
 mysqli_stmt_bind_param($stmt, "i", $propertyId);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
-$property = mysqli_fetch_assoc($result);
 
-if (!$property) {
+if (mysqli_num_rows($result) === 0) {
     echo json_encode(['success' => false, 'message' => 'Property not found']);
     exit;
 }
 
-// Delete the property
-$deleteQuery = "DELETE FROM properties WHERE id = ?";
-$stmt = mysqli_prepare($conn, $deleteQuery);
-mysqli_stmt_bind_param($stmt, "i", $propertyId);
+// Update property status
+$updateQuery = "UPDATE properties SET status = ? WHERE id = ?";
+$stmt = mysqli_prepare($conn, $updateQuery);
+mysqli_stmt_bind_param($stmt, "si", $newStatus, $propertyId);
 
 if (mysqli_stmt_execute($stmt)) {
-    // Delete associated files
-    if ($property['thumbnail'] && file_exists($property['thumbnail'])) {
-        unlink($property['thumbnail']);
-    }
-    
-    if ($property['images']) {
-        $images = json_decode($property['images'], true);
-        if (is_array($images)) {
-            foreach ($images as $image) {
-                if (file_exists($image)) {
-                    unlink($image);
-                }
-            }
-        }
-    }
-    
-    echo json_encode(['success' => true, 'message' => 'Property deleted successfully']);
+    $action = $newStatus === 'active' ? 'activated' : 'deactivated';
+    echo json_encode(['success' => true, 'message' => "Property $action successfully"]);
 } else {
-    echo json_encode(['success' => false, 'message' => 'Error deleting property']);
+    echo json_encode(['success' => false, 'message' => 'Error updating property status']);
 }
 
 mysqli_stmt_close($stmt);
 mysqli_close($conn);
-?>
+?> 

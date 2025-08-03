@@ -65,11 +65,11 @@ $propertiesResult = $stmt->get_result();
                 $firstImage = !empty($images) ? '../' . $images[0] : 'https://via.placeholder.com/150';
 
                 $statusIcon = '';
-                if ($property['status'] == 'approved') {
+                if ($property['listing'] == 'approved') {
                     $statusIcon = '<i class="fas fa-check text-success" title="Approved"></i>';
-                } elseif ($property['status'] == 'rejected') {
+                } elseif ($property['listing'] == 'rejected') {
                     $statusIcon = '<i class="fas fa-times text-danger" title="Rejected"></i>';
-                } elseif ($property['status'] == 'pending') {
+                } elseif ($property['listing'] == 'pending') {
                     $statusIcon = '<i class="fas fa-clock text-warning" title="Pending"></i>';
                 }
             ?>

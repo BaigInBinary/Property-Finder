@@ -21,7 +21,7 @@ if ($hasFilters) {
         p.images_json, u.name AS user_name 
     FROM properties p 
     JOIN users u ON p.user_id = u.id 
-    WHERE 1=1 ";
+    WHERE p.listing = 'approved' ";
     if (!empty($city)) {
         $query .= " AND p.city = ?";
         $params[] = $city;
@@ -61,7 +61,8 @@ if ($hasFilters) {
         p.id, p.title, p.price, p.type, p.area, p.location, p.city, 
         p.images_json, u.name AS user_name 
     FROM properties p 
-    JOIN users u ON p.user_id = u.id";
+    JOIN users u ON p.user_id = u.id 
+    WHERE p.listing = 'approved'";
     $stmt = $conn->prepare($query);
 }
 

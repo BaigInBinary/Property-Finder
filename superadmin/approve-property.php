@@ -5,7 +5,7 @@ require_once '../backend/db.php';
 $propertyId = $_GET['id'] ?? null;
 
 if ($propertyId) {
-    $stmt = $conn->prepare("UPDATE properties SET status = 'approved' WHERE id = ?");
+    $stmt = $conn->prepare("UPDATE properties SET listing = 'approved' WHERE id = ?");
     $stmt->bind_param('i', $propertyId);
 
     if ($stmt->execute()) {

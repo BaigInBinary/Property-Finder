@@ -51,11 +51,11 @@
                                 $images = json_decode($property['images_json'], true);
                                 $firstImage = !empty($images) ? $images[0] : 'https://via.placeholder.com/50';
                                 $statusIcon = '';
-                                if ($property['status'] == 'available') {
-                                    $statusIcon = '<i class="fas fa-check text-success" title="Available"></i>';
-                                } elseif ($property['status'] == 'rejected') {
+                                if ($property['listing'] == 'approved') {
+                                    $statusIcon = '<i class="fas fa-check text-success" title="Approved"></i>';
+                                } elseif ($property['listing'] == 'rejected') {
                                     $statusIcon = '<i class="fas fa-times text-danger" title="Rejected"></i>';
-                                } elseif ($property['status'] == 'pending') {
+                                } elseif ($property['listing'] == 'pending') {
                                     $statusIcon = '<i class="fas fa-clock text-warning" title="Pending"></i>';
                                 }
                                 
