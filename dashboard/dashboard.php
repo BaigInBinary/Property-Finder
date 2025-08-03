@@ -706,23 +706,6 @@ $stmt->close();
                                             </div>
                                             <h5 class="mt-5" id="profileName">Name not set</h5>
                                             <p class="text-muted" id="profileRole">Role not set</p>
-
-                                            <div class="profile-stats">
-                                                <div class="row g-0">
-                                                    <div class="col">
-                                                        <h6>15</h6>
-                                                        <p>Properties</p>
-                                                    </div>
-                                                    <div class="col">
-                                                        <h6>2.5K</h6>
-                                                        <p>Views</p>
-                                                    </div>
-                                                    <div class="col">
-                                                        <h6>250</h6>
-                                                        <p>Points</p>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1506,8 +1489,6 @@ function handleBuyRequest(id, action) {
                     <div class="card-footer bg-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="property-stats">
-                                <span title="Views"><i class="fas fa-eye"></i> 0</span>
-                                <span title="Likes"><i class="fas fa-heart"></i> 0</span>
                             </div>
                             <button class="btn btn-primary btn-sm" onclick="window.location.href='../view-property-detail.php?id=${property.id}'">
     View Details

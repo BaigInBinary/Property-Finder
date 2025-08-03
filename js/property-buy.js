@@ -42,6 +42,18 @@ document.addEventListener("DOMContentLoaded", function () {
     emailInput.value = emailInput.getAttribute("value");
   }
 
+  // Cardholder name validation - only letters and spaces
+  const cardholderNameInput = document.getElementById("checkout-name");
+  if (cardholderNameInput) {
+    cardholderNameInput.addEventListener("input", function (e) {
+      // Remove any non-letter characters except spaces
+      let value = this.value.replace(/[^a-zA-Z\s]/g, "");
+      // Remove extra spaces
+      value = value.replace(/\s+/g, " ").trim();
+      this.value = value;
+    });
+  }
+
   // Card number formatting: XXXX XXXX XXXX XXXX
   const cardInput = document.getElementById("checkout-card");
   if (cardInput) {
@@ -70,6 +82,51 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // Function to validate expiry date
+  function validateExpiryDate(expiry) {
+    if (!expiry || expiry.length !== 5) return false;
+
+    const [month, year] = expiry.split("/");
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear() % 100; // Get last 2 digits
+    const currentMonth = currentDate.getMonth() + 1; // January is 0
+
+    const expMonth = parseInt(month);
+    const expYear = parseInt(year);
+
+    // Debug logging
+    console.log("Expiry validation:", {
+      input: expiry,
+      month: expMonth,
+      year: expYear,
+      currentYear: currentYear,
+      currentMonth: currentMonth,
+    });
+
+    // Check if month is valid (1-12)
+    if (expMonth < 1 || expMonth > 12) {
+      console.log("Invalid month:", expMonth);
+      return false;
+    }
+
+    // Check if expiry date is in the future
+    if (expYear < currentYear) {
+      console.log("Year in past:", expYear, "<", currentYear);
+      return false;
+    }
+    if (expYear === currentYear && expMonth < currentMonth) {
+      console.log(
+        "Month in past for current year:",
+        expMonth,
+        "<",
+        currentMonth
+      );
+      return false;
+    }
+
+    return true;
+  }
+
   // CVV: only 3 digits
   const cvvInput = document.getElementById("checkout-cvv");
   if (cvvInput) {
@@ -90,8 +147,56 @@ document.addEventListener("DOMContentLoaded", function () {
       const card = cardInput.value.replace(/\s/g, "");
       const expiry = expiryInput.value;
       const cvv = cvvInput.value;
+      const cardholderName = document
+        .getElementById("checkout-name")
+        .value.trim();
       const urlParams = new URLSearchParams(window.location.search);
       const propertyId = urlParams.get("id");
+
+      // Validate cardholder name
+      if (!cardholderName) {
+        alert("Please enter the cardholder name.");
+        return;
+      }
+
+      // Check if cardholder name contains only letters and spaces
+      if (!/^[a-zA-Z\s]+$/.test(cardholderName)) {
+        alert("Cardholder name should only contain letters and spaces.");
+        return;
+      }
+
+      // Check if cardholder name has at least 2 characters
+      if (cardholderName.length < 2) {
+        alert("Please enter a valid cardholder name (at least 2 characters).");
+        return;
+      }
+
+      // Validate expiry date
+      if (!validateExpiryDate(expiry)) {
+        const [month, year] = expiry.split("/");
+        const expMonth = parseInt(month);
+
+        if (expMonth < 1 || expMonth > 12) {
+          alert("Invalid month. Month must be between 01 and 12.");
+        } else {
+          alert(
+            "Please enter a valid expiry date (MM/YY format). The card must not be expired."
+          );
+        }
+        return;
+      }
+
+      // Validate card number (basic check)
+      if (card.length !== 16) {
+        alert("Please enter a valid 16-digit card number.");
+        return;
+      }
+
+      // Validate CVV
+      if (cvv.length < 3) {
+        alert("Please enter a valid CVV.");
+        return;
+      }
 
       fetch("backend/property-buy-request.php", {
         method: "POST",
@@ -99,6 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
         body: JSON.stringify({
           property_id: propertyId,
           email: email,
+          cardholder_name: cardholderName,
           card: card,
           expiry: expiry,
           cvv: cvv,

@@ -297,6 +297,10 @@ if ($soldCount > 0) {
                             <input type="email" class="form-control" id="checkout-email" name="checkout-email" placeholder="Email Address" value="<?php echo htmlspecialchars($userEmail); ?>" <?php echo $userEmail ? 'disabled' : ''; ?> required />
                           </div>
                           <div class="mb-3">
+                            <label for="checkout-name" class="form-label">Cardholder Name</label>
+                            <input type="text" class="form-control" id="checkout-name" name="checkout-name" placeholder="Name on Card" required />
+                          </div>
+                          <div class="mb-3">
                             <label for="checkout-card" class="form-label">Card Number</label>
                             <div class="input-group">
                               <span class="input-group-text"><i class="fas fa-credit-card"></i></span>
@@ -356,6 +360,10 @@ if ($soldCount > 0) {
               <div class="mb-3">
                 <label for="checkout-email" class="form-label">Email Address</label>
                 <input type="email" class="form-control" id="checkout-email" name="checkout-email" placeholder="Email Address" value="<?php echo htmlspecialchars($userEmail); ?>" <?php echo $userEmail ? 'disabled' : ''; ?> required />
+              </div>
+              <div class="mb-3">
+                <label for="checkout-name" class="form-label">Cardholder Name</label>
+                <input type="text" class="form-control" id="checkout-name" name="checkout-name" placeholder="Name on Card" required />
               </div>
               <div class="mb-3">
                 <label for="checkout-card" class="form-label">Card Number</label>
