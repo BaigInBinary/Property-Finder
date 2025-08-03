@@ -82,7 +82,7 @@
                             <select class="form-select" id="unit" name="unit" required>
                                 <option value="">Select Unit</option>
                                 <option value="marla">Marla</option>
-                                <option value="square feet">Square Feet</option>
+                                <!-- <option value="square feet">Square Feet</option> -->
                             </select>
                             <div class="invalid-feedback">
                                 Please select a unit

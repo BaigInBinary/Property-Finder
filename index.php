@@ -84,7 +84,7 @@ $locationQuery = $conn->query("SELECT DISTINCT city FROM properties WHERE city I
                 <select class="form-select" id="areaUnit" name="areaUnit" style="max-width: 130px;">
                     <option value="">Any Unit</option>
                     <option value="marla">Marla</option>
-                    <option value="sqft">Square Feet</option>
+                    <!-- <option value="sqft">Square Feet</option> -->
                 </select>
             </div>
         </div>

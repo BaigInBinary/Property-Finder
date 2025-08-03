@@ -1196,7 +1196,7 @@ function handleBuyRequest(id, action) {
                             <select name="unit" id="editUnit" class="form-select" required>
                                 <option value="">Select Unit</option>
                                 <option value="marla">Marla</option>
-                                <option value="square feet">Square Feet</option>
+                                <!-- <option value="square feet">Square Feet</option> -->
                             </select>
                         </div>
 
