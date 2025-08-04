@@ -11,7 +11,43 @@ if (isset($_SESSION['user_id'])) {
     $email = $_POST['email'] ?? '';
     $phone = $_POST['phone'] ?? '';
     $location = $_POST['location'] ?? '';
+    $cnic = $_POST['cnic'] ?? '';
     $bio = $_POST['bio'] ?? '';
+
+    // Validation
+    $errors = [];
+    
+    // Validate name (only letters and spaces)
+    if (!preg_match('/^[A-Za-z\s]+$/', $name)) {
+        $errors[] = 'Name should only contain letters and spaces.';
+    }
+    
+    // Validate phone format (03XX-XXXXXXX)
+    if (!empty($phone) && !preg_match('/^[0-9]{4}-[0-9]{7}$/', $phone)) {
+        $errors[] = 'Phone number should be in format: 03XX-XXXXXXX';
+    }
+    
+    // Validate location (letters, spaces, commas, dots, hyphens)
+    if (!empty($location) && !preg_match('/^[A-Za-z\s,.-]+$/', $location)) {
+        $errors[] = 'Location should only contain letters, spaces, commas, dots, and hyphens.';
+    }
+    
+    // Validate CNIC format (XXXXX-XXXXXXX-X)
+    if (!empty($cnic) && !preg_match('/^[0-9]{5}-[0-9]{7}-[0-9]{1}$/', $cnic)) {
+        $errors[] = 'CNIC should be in format: XXXXX-XXXXXXX-X';
+    }
+    
+    // Validate bio length
+    if (strlen($bio) > 500) {
+        $errors[] = 'Bio should not exceed 500 characters.';
+    }
+    
+    if (!empty($errors)) {
+        $response['message'] = implode(' ', $errors);
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit;
+    }
 
     $picturePath = null;
 
@@ -43,11 +79,11 @@ if (isset($_SESSION['user_id'])) {
 
     // Prepare SQL with picture conditional update
     if ($picturePath) {
-        $stmt = $conn->prepare("UPDATE users SET name = ?, email = ?, phone = ?, location = ?, bio = ?, picture = ? WHERE id = ?");
-        $stmt->bind_param('ssssssi', $name, $email, $phone, $location, $bio, $picturePath, $userId);
+        $stmt = $conn->prepare("UPDATE users SET name = ?, email = ?, phone = ?, location = ?, cnic = ?, bio = ?, picture = ? WHERE id = ?");
+        $stmt->bind_param('sssssssi', $name, $email, $phone, $location, $cnic, $bio, $picturePath, $userId);
     } else {
-        $stmt = $conn->prepare("UPDATE users SET name = ?, email = ?, phone = ?, location = ?, bio = ? WHERE id = ?");
-        $stmt->bind_param('sssssi', $name, $email, $phone, $location, $bio, $userId);
+        $stmt = $conn->prepare("UPDATE users SET name = ?, email = ?, phone = ?, location = ?, cnic = ?, bio = ? WHERE id = ?");
+        $stmt->bind_param('ssssssi', $name, $email, $phone, $location, $cnic, $bio, $userId);
     }
 
     if ($stmt->execute()) {

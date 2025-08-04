@@ -181,6 +181,51 @@ $stmt->close();
     .card-header.bg-gradient-primary small {
         color: rgba(255, 255, 255, 0.8);
     }
+
+    /* Validation styles */
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+    .form-control.is-valid {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+    }
+
+    .invalid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #dc3545;
+    }
+
+    .valid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #198754;
+    }
+
+    .char-counter {
+        font-size: 0.875em;
+        margin-top: 0.25rem;
+    }
+
+    .char-counter.text-warning {
+        color: #ffc107 !important;
+    }
+
+    .char-counter.text-danger {
+        color: #dc3545 !important;
+    }
+
+    .form-text {
+        font-size: 0.875em;
+        color: #6c757d;
+    }
 </style>
 
 <?php
@@ -988,29 +1033,48 @@ $stmt->close();
 
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Full Name</label>
-                                                    <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars($userName); ?>">
+                                                    <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                                                    <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars($userName); ?>" 
+                                                           pattern="^[A-Za-z\s]+$" title="Name should only contain letters and spaces." required>
+                                                    <div class="invalid-feedback">Please enter a valid name with only letters and spaces.</div>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Email</label>
+                                                    <label class="form-label">Email <span class="text-danger">*</span></label>
                                                     <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($userEmail); ?>" readonly>
+                                                    <div class="form-text">Email cannot be changed for security reasons.</div>
                                                 </div>
                                             </div>
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Phone</label>
+                                                    <label class="form-label">Phone <span class="text-danger">*</span></label>
                                                     <input type="text" name="phone" class="form-control" value="<?php echo htmlspecialchars($userPhone); ?>" 
-                                                           placeholder="03XX-XXXXXXX">
+                                                           placeholder="03XX-XXXXXXX" pattern="^[0-9]{4}-[0-9]{7}$" title="Please enter phone number in format: 03XX-XXXXXXX" required>
+                                                    <div class="invalid-feedback">Please enter a valid phone number in format: 03XX-XXXXXXX</div>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Location</label>
+                                                    <label class="form-label">Location <span class="text-danger">*</span></label>
                                                     <input type="text" name="location" class="form-control" value="<?php echo htmlspecialchars($userLocation); ?>" 
-                                                           placeholder="City, Country">
+                                                           placeholder="City, Country" pattern="^[A-Za-z\s,.-]+$" title="Location should only contain letters, spaces, commas, dots, and hyphens." required>
+                                                    <div class="invalid-feedback">Please enter a valid location with only letters, spaces, commas, dots, and hyphens.</div>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">CNIC <span class="text-danger">*</span></label>
+                                                    <input type="text" name="cnic" class="form-control" value="<?php echo htmlspecialchars($userCNIC ?? ''); ?>" 
+                                                           placeholder="12345-1234567-1" pattern="^[0-9]{5}-[0-9]{7}-[0-9]{1}$" title="Please enter CNIC in format: XXXXX-XXXXXXX-X" required>
+                                                    <div class="invalid-feedback">Please enter a valid CNIC in format: XXXXX-XXXXXXX-X</div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Account Type</label>
+                                                    <input type="text" class="form-control" value="<?php echo ucfirst(htmlspecialchars($userRole ?? 'user')); ?>" readonly>
+                                                    <div class="form-text">Account type cannot be changed.</div>
                                                 </div>
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label">Bio</label>
-                                                <textarea name="bio" class="form-control" rows="4"><?php echo htmlspecialchars($userBio); ?></textarea>
+                                                <textarea name="bio" class="form-control" rows="4" maxlength="500" placeholder="Write a short bio about yourself (max 500 characters)"><?php echo htmlspecialchars($userBio); ?></textarea>
+                                                <div class="form-text">Maximum 500 characters allowed.</div>
                                             </div>
                                             <button type="submit" class="btn btn-primary">Save Changes</button>
                         </form>
@@ -5292,6 +5356,169 @@ $(document).ready(function() {
                 this.value = this.value.slice(0, start) + filtered + this.value.slice(end);
                 // Move cursor to end of inserted text
                 this.selectionStart = this.selectionEnd = start + filtered.length;
+            });
+
+            // CNIC field validation (same as signup)
+            $('input[name="cnic"]').on('input', function(e) {
+                let value = this.value.replace(/\D/g, ''); // Remove all non-digits
+                if (value.length > 13) value = value.slice(0, 13); // Max 13 digits
+
+                let formatted = '';
+                if (value.length > 5) {
+                    formatted += value.slice(0, 5) + '-';
+                    if (value.length > 12) {
+                        formatted += value.slice(5, 12) + '-' + value.slice(12, 13);
+                    } else if (value.length > 5) {
+                        formatted += value.slice(5, 12);
+                    }
+                } else {
+                    formatted = value;
+                }
+                if (value.length > 12) {
+                    formatted = value.slice(0, 5) + '-' + value.slice(5, 12) + '-' + value.slice(12, 13);
+                }
+                this.value = formatted;
+            });
+
+            // CNIC field paste validation
+            $('input[name="cnic"]').on('paste', function(e) {
+                let paste = (e.clipboardData || window.clipboardData).getData('text');
+                let digits = paste.replace(/\D/g, '').substring(0, 13);
+                let formatted = digits;
+                if (digits.length > 5) {
+                    formatted = digits.slice(0, 5) + '-';
+                    if (digits.length > 12) {
+                        formatted += digits.slice(5, 12) + '-' + digits.slice(12, 13);
+                    } else if (digits.length > 5) {
+                        formatted += digits.slice(5, 12);
+                    }
+                }
+                e.preventDefault();
+                this.value = formatted;
+            });
+
+            // Bio field character counter
+            $('textarea[name="bio"]').on('input', function() {
+                const maxLength = 500;
+                const currentLength = this.value.length;
+                const remaining = maxLength - currentLength;
+                
+                // Update character counter
+                let counter = $(this).siblings('.char-counter');
+                if (counter.length === 0) {
+                    counter = $('<div class="form-text char-counter"></div>');
+                    $(this).after(counter);
+                }
+                
+                counter.text(`${currentLength}/${maxLength} characters`);
+                
+                if (currentLength > maxLength) {
+                    this.value = this.value.substring(0, maxLength);
+                    counter.text(`${maxLength}/${maxLength} characters`);
+                }
+                
+                // Change color based on remaining characters
+                if (remaining <= 50) {
+                    counter.addClass('text-warning');
+                } else {
+                    counter.removeClass('text-warning');
+                }
+                
+                if (remaining <= 10) {
+                    counter.addClass('text-danger');
+                } else {
+                    counter.removeClass('text-danger');
+                }
+            });
+
+            // Real-time validation feedback
+            $('input[name="full_name"]').on('blur', function() {
+                const pattern = /^[A-Za-z\s]+$/;
+                if (this.value && !pattern.test(this.value)) {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                } else if (this.value) {
+                    $(this).addClass('is-valid').removeClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-valid is-invalid');
+                }
+            });
+
+            $('input[name="phone"]').on('blur', function() {
+                const pattern = /^[0-9]{4}-[0-9]{7}$/;
+                if (this.value && !pattern.test(this.value)) {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                } else if (this.value) {
+                    $(this).addClass('is-valid').removeClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-valid is-invalid');
+                }
+            });
+
+            $('input[name="location"]').on('blur', function() {
+                const pattern = /^[A-Za-z\s,.-]+$/;
+                if (this.value && !pattern.test(this.value)) {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                } else if (this.value) {
+                    $(this).addClass('is-valid').removeClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-valid is-invalid');
+                }
+            });
+
+            $('input[name="cnic"]').on('blur', function() {
+                const pattern = /^[0-9]{5}-[0-9]{7}-[0-9]{1}$/;
+                if (this.value && !pattern.test(this.value)) {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                } else if (this.value) {
+                    $(this).addClass('is-valid').removeClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-valid is-invalid');
+                }
+            });
+
+            // Form validation on submit
+            $('#profileForm').on('submit', function(e) {
+                const form = this;
+                let isValid = true;
+
+                // Validate required fields
+                $(form).find('input[required]').each(function() {
+                    if (!this.checkValidity()) {
+                        isValid = false;
+                        $(this).addClass('is-invalid');
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                });
+
+                // Custom validation for phone format
+                const phoneInput = $('input[name="phone"]');
+                const phonePattern = /^[0-9]{4}-[0-9]{7}$/;
+                if (phoneInput.val() && !phonePattern.test(phoneInput.val())) {
+                    isValid = false;
+                    phoneInput.addClass('is-invalid');
+                }
+
+                // Custom validation for CNIC format
+                const cnicInput = $('input[name="cnic"]');
+                const cnicPattern = /^[0-9]{5}-[0-9]{7}-[0-9]{1}$/;
+                if (cnicInput.val() && !cnicPattern.test(cnicInput.val())) {
+                    isValid = false;
+                    cnicInput.addClass('is-invalid');
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                    iziToast.error({
+                        title: 'Validation Error',
+                        message: 'Please correct the errors in the form.',
+                        position: 'topRight'
+                    });
+                    return false;
+                }
+
+                // If validation passes, proceed with form submission
+                return true;
             });
         }
         
