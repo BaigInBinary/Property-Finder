@@ -2,8 +2,16 @@
 session_start();
 require_once 'db.php';
 
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Log the request
+error_log("Change password request received: " . json_encode($_POST));
+
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
+    error_log("User not logged in for change password");
     echo json_encode([
         'success' => false,
         'message' => 'User not logged in'
@@ -25,8 +33,13 @@ $currentPassword = $_POST['current_password'] ?? '';
 $newPassword = $_POST['new_password'] ?? '';
 $confirmPassword = $_POST['confirm_password'] ?? '';
 
+error_log("Form data received - Current: " . (empty($currentPassword) ? 'empty' : 'filled') . 
+          ", New: " . (empty($newPassword) ? 'empty' : 'filled') . 
+          ", Confirm: " . (empty($confirmPassword) ? 'empty' : 'filled'));
+
 // Validate input
 if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+    error_log("Validation failed: missing fields");
     echo json_encode([
         'success' => false,
         'message' => 'All fields are required'
@@ -74,12 +87,15 @@ try {
     
     // Verify current password
     if (!password_verify($currentPassword, $currentHashedPassword)) {
+        error_log("Password verification failed for user ID: " . $userId);
         echo json_encode([
             'success' => false,
             'message' => 'Current password is incorrect'
         ]);
         exit;
     }
+    
+    error_log("Password verification successful for user ID: " . $userId);
     
     // Hash the new password
     $newHashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
@@ -89,11 +105,13 @@ try {
     $updateStmt->bind_param('si', $newHashedPassword, $userId);
     
     if ($updateStmt->execute()) {
+        error_log("Password updated successfully for user ID: " . $userId);
         echo json_encode([
             'success' => true,
             'message' => 'Password changed successfully'
         ]);
     } else {
+        error_log("Failed to update password for user ID: " . $userId . " - Error: " . $updateStmt->error);
         echo json_encode([
             'success' => false,
             'message' => 'Failed to update password'

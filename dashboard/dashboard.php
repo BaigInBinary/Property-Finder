@@ -21,6 +21,9 @@ if ($row = mysqli_fetch_assoc($result)) {
     $userName = $row['name'];
     $userEmail = $row['email'];
     $userCNIC = $row['cnic'];
+    $userPhone = $row['phone'] ?? '';
+    $userLocation = $row['location'] ?? '';
+    $userBio = $row['bio'] ?? '';
     $userRole = $row['role'];
     $userCreated = $row['created_at'];
     $picture = $row['picture'];
@@ -279,8 +282,8 @@ $stmt->close();
 
                 <img src="<?php echo $picture ? '../' . $picture : '../images/user.png' ?>" alt="User Avatar" class="user-avatar">
                 <div class="user-info">
-                    <h6 class="user-name mb-0" id="profileName"><? $userName ?></h6>
-                    <span class="user-role" id="profileRole">Agent</span>
+                    <h6 class="user-name mb-0" id="profileName"><?php echo htmlspecialchars($userName); ?></h6>
+                    <span class="user-role" id="profileRole"><?php echo ucfirst(htmlspecialchars($userRole)); ?></span>
                 </div>
             </div>
 
@@ -969,8 +972,8 @@ $stmt->close();
                                                     <i class="fas fa-camera"></i>
                                                 </label>
                                             </div>
-                                            <h5 class="mt-5" id="profileName">Name not set</h5>
-                                            <p class="text-muted" id="profileRole">Role not set</p>
+                                            <h5 class="mt-5" id="profileName"><?php echo htmlspecialchars($userName); ?></h5>
+                                            <p class="text-muted" id="profileRole"><?php echo ucfirst(htmlspecialchars($userRole)); ?></p>
                                         </div>
                                     </div>
                                 </div>
@@ -982,28 +985,28 @@ $stmt->close();
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label">Full Name</label>
-                                                    <input type="text" name="full_name" class="form-control" value="">
+                                                    <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars($userName); ?>">
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Email</label>
-                                                    <input type="email" name="email" class="form-control" value="" readonly>
+                                                    <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($userEmail); ?>" readonly>
                                                 </div>
                                             </div>
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label">Phone</label>
-                                                    <input type="text" name="phone" class="form-control" value="" 
+                                                    <input type="text" name="phone" class="form-control" value="<?php echo htmlspecialchars($userPhone); ?>" 
                                                            placeholder="03XX-XXXXXXX">
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Location</label>
-                                                    <input type="text" name="location" class="form-control" value="" 
+                                                    <input type="text" name="location" class="form-control" value="<?php echo htmlspecialchars($userLocation); ?>" 
                                                            placeholder="City, Country">
                                                 </div>
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label">Bio</label>
-                                                <textarea name="bio" class="form-control" rows="4"></textarea>
+                                                <textarea name="bio" class="form-control" rows="4"><?php echo htmlspecialchars($userBio); ?></textarea>
                                             </div>
                                             <button type="submit" class="btn btn-primary">Save Changes</button>
                         </form>
@@ -5390,6 +5393,80 @@ $(document).ready(function() {
                         position: 'topRight'
                     });
                 }
+            });
+
+
+            // ----------------- Profile Form Validation -------------------
+            // Full Name field validation (same as name field in signup)
+            $('input[name="full_name"]').on('input', function(e) {
+                // Only allow letters and spaces
+                let value = this.value.replace(/[^A-Za-z\s]/g, '');
+                if (this.value !== value) {
+                    this.value = value;
+                }
+            });
+
+            // Full Name field paste validation
+            $('input[name="full_name"]').on('paste', function(e) {
+                let paste = (e.clipboardData || window.clipboardData).getData('text');
+                let filtered = paste.replace(/[^A-Za-z\s]/g, '');
+                e.preventDefault();
+                // Insert filtered text at cursor position
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.slice(0, start) + filtered + this.value.slice(end);
+                // Move cursor to end of inserted text
+                this.selectionStart = this.selectionEnd = start + filtered.length;
+            });
+
+
+            // Phone field validation (same as signup)
+            $('input[name="phone"]').on('input', function(e) {
+                // Remove all non-digits
+                let value = this.value.replace(/\D/g, '');
+                // Limit to 11 digits (4 for code, 7 for number)
+                value = value.substring(0, 11);
+
+                // Format as 0300-1234567
+                let formatted = value;
+                if (value.length > 4) {
+                    formatted = value.substring(0, 4) + '-' + value.substring(4, 11);
+                }
+                this.value = formatted;
+            });
+
+            // Phone field paste validation
+            $('input[name="phone"]').on('paste', function(e) {
+                let paste = (e.clipboardData || window.clipboardData).getData('text');
+                let digits = paste.replace(/\D/g, '').substring(0, 11);
+                let formatted = digits;
+                if (digits.length > 4) {
+                    formatted = digits.substring(0, 4) + '-' + digits.substring(4, 11);
+                }
+                e.preventDefault();
+                this.value = formatted;
+            });
+            
+            // Location field validation (same as name field in signup)
+            $('input[name="location"]').on('input', function(e) {
+                // Only allow letters, spaces, and common punctuation
+                let value = this.value.replace(/[^A-Za-z\s,.-]/g, '');
+                if (this.value !== value) {
+                    this.value = value;
+                }
+            });
+
+            // Location field paste validation
+            $('input[name="location"]').on('paste', function(e) {
+                let paste = (e.clipboardData || window.clipboardData).getData('text');
+                let filtered = paste.replace(/[^A-Za-z\s,.-]/g, '');
+                e.preventDefault();
+                // Insert filtered text at cursor position
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.slice(0, start) + filtered + this.value.slice(end);
+                // Move cursor to end of inserted text
+                this.selectionStart = this.selectionEnd = start + filtered.length;
             });
 
             // ----------------- Update Profile -------------------
