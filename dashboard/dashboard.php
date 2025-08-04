@@ -251,9 +251,13 @@ $stmt->close();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- iziToast CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
     <!-- Custom CSS -->
     <link href="../css/styles.css" rel="stylesheet">
     <link href="../css/dashboard.css" rel="stylesheet">
+    <!-- iziToast JS -->
+    <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
 </head>
 
 <body class="dashboard-body">
@@ -1066,10 +1070,114 @@ $stmt->close();
                                     </div>
                                 </div>
                                 <div class="text-center">
-                                    <button type="submit" class="btn btn-primary btn-lg">
+                                    <button type="button" id="changePasswordBtn" class="btn btn-primary btn-lg">
                                         <i class="fas fa-key me-2"></i>Change Password
                                     </button>
                                 </div>
+                                
+                                <!-- Inline test for password toggles and change password button -->
+                                <script>
+                                    console.log('Inline script running');
+                                    console.log('Toggle buttons found:', {
+                                        current: document.getElementById('toggleCurrentPassword'),
+                                        new: document.getElementById('toggleNewPassword'),
+                                        confirm: document.getElementById('toggleConfirmPassword')
+                                    });
+                                    console.log('Change password button found:', document.getElementById('changePasswordBtn'));
+                                    
+                                    // Simple inline toggle test
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const toggles = ['toggleCurrentPassword', 'toggleNewPassword', 'toggleConfirmPassword'];
+                                        const inputs = ['currentPassword', 'newPassword', 'confirmPassword'];
+                                        
+                                        toggles.forEach((toggleId, index) => {
+                                            const toggle = document.getElementById(toggleId);
+                                            const input = document.getElementById(inputs[index]);
+                                            
+                                            if (toggle && input) {
+                                                console.log('Setting up inline toggle for:', toggleId);
+                                                toggle.addEventListener('click', function(e) {
+                                                    e.preventDefault();
+                                                    console.log('Inline toggle clicked:', toggleId);
+                                                    
+                                                    if (input.type === 'password') {
+                                                        input.type = 'text';
+                                                        this.querySelector('i').className = 'fas fa-eye-slash';
+                                                    } else {
+                                                        input.type = 'password';
+                                                        this.querySelector('i').className = 'fas fa-eye';
+                                                    }
+                                                });
+                                            }
+                                        });
+                                        
+                                        // Test change password button
+                                        const changePasswordBtn = document.getElementById('changePasswordBtn');
+                                        if (changePasswordBtn) {
+                                            console.log('Setting up inline change password button handler');
+                                            changePasswordBtn.addEventListener('click', function(e) {
+                                                e.preventDefault();
+                                                console.log('Inline change password button clicked');
+                                                
+                                                // Get form values
+                                                const currentPassword = document.getElementById('currentPassword').value;
+                                                const newPassword = document.getElementById('newPassword').value;
+                                                const confirmPassword = document.getElementById('confirmPassword').value;
+                                                
+                                                console.log('Inline form values:', {
+                                                    currentPassword: currentPassword ? 'filled' : 'empty',
+                                                    newPassword: newPassword ? 'filled' : 'empty',
+                                                    confirmPassword: confirmPassword ? 'filled' : 'empty'
+                                                });
+                                                
+                                                // Simple validation
+                                                if (!currentPassword || !newPassword || !confirmPassword) {
+                                                    alert('Please fill in all fields.');
+                                                    return;
+                                                }
+                                                
+                                                if (newPassword !== confirmPassword) {
+                                                    alert('New password and confirm password do not match.');
+                                                    return;
+                                                }
+                                                
+                                                if (newPassword.length < 6) {
+                                                    alert('New password must be at least 6 characters long.');
+                                                    return;
+                                                }
+                                                
+                                                console.log('Inline: Sending AJAX request');
+                                                
+                                                // Use fetch for AJAX request
+                                                fetch('../backend/change-password.php', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/x-www-form-urlencoded',
+                                                    },
+                                                    body: new URLSearchParams({
+                                                        current_password: currentPassword,
+                                                        new_password: newPassword,
+                                                        confirm_password: confirmPassword
+                                                    })
+                                                })
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    console.log('Inline response:', data);
+                                                    if (data.success) {
+                                                        alert('Password changed successfully!');
+                                                        document.getElementById('changePasswordForm').reset();
+                                                    } else {
+                                                        alert(data.message || 'Failed to change password.');
+                                                    }
+                                                })
+                                                .catch(error => {
+                                                    console.error('Inline error:', error);
+                                                    alert('An error occurred while changing password.');
+                                                });
+                                            });
+                                        }
+                                    });
+                                </script>
                             </form>
                         </div>
                     </div>
@@ -4154,9 +4262,9 @@ $(document).ready(function() {
                             referralBtn.addEventListener('click', () => {
                                 navigator.clipboard.writeText(data.referral_code).then(() => {
                                     alert('Referral code copied: ' + data.referral_code);
-                                });
-                            });
-                        }
+                                                });
+            });
+        }
                     } else {
                         console.warn('Status not success:', data);
                     }
@@ -5256,6 +5364,96 @@ $(document).ready(function() {
         }
         
         
+        // function updatePropertyStats() {
+        //     // Update the stats cards with new counts
+        //     const totalProperties = $(".property-row").length;
+        //     const activeProperties = $(".property-row[data-status=\"active\"]").length;
+        //     const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
+            
+        //     console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
+        //     // Update stats cards if they exist
+        //     $(".stats-card h3").each(function() {
+        //         const cardText = $(this).next("p").text().toLowerCase();
+        //         if (cardText.includes("total properties")) {
+        //             $(this).text(totalProperties);
+        //         } else if (cardText.includes("active properties")) {
+        //             $(this).text(activeProperties);
+        //         } else if (cardText.includes("pending properties")) {
+        //             $(this).text(pendingProperties);
+        //         }
+        //     });
+        // }
+        
+        
+        // function updateApprovalRow(propertyId, newListingStatus) {
+        //     const row = $(`.approval-row[data-id="${propertyId}"]`);
+        //     if (row.length) {
+        //         // Update the status badge
+        //         const statusBadge = row.find("td:nth-child(8) .badge");
+        //         if (statusBadge.length) {
+        //             statusBadge.removeClass("bg-success bg-danger bg-warning")
+        //                 .addClass(newListingStatus === "approved" ? "bg-success" : 
+        //                          newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+        //                 .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+        //         }
+                
+        //         // Update the action buttons
+        //         const actionButtons = row.find("td:nth-child(10) .btn-group");
+        //         if (actionButtons.length) {
+        //             if (newListingStatus === "approved") {
+        //                 actionButtons.html(`
+        //                     <button class="btn btn-sm btn-outline-primary" 
+        //                             onclick="viewPropertyForApproval(${propertyId})"
+        //                             title="View Details">
+        //                         <i class="fas fa-eye"></i>
+        //                     </button>
+        //                     <button class="btn btn-sm btn-outline-danger" 
+        //                             onclick="toggleListingStatus(${propertyId}, 'approved')"
+        //                             title="Hide Property">
+        //                         <i class="fas fa-times"></i>
+        //                     </button>
+        //                 `);
+        //             } else if (newListingStatus === "rejected") {
+        //                 actionButtons.html(`
+        //                     <button class="btn btn-sm btn-outline-primary" 
+        //                             onclick="viewPropertyForApproval(${propertyId})"
+        //                             title="View Details">
+        //                         <i class="fas fa-eye"></i>
+        //                     </button>
+        //                     <button class="btn btn-sm btn-outline-success" 
+        //                             onclick="toggleListingStatus(${propertyId}, 'rejected')"
+        //                             title="Show Property">
+        //                         <i class="fas fa-check"></i>
+        //                     </button>
+        //                 `);
+        //             } else {
+        //                 actionButtons.html(`
+        //                     <button class="btn btn-sm btn-outline-primary" 
+        //                             onclick="viewPropertyForApproval(${propertyId})"
+        //                             title="View Details">
+        //                         <i class="fas fa-eye"></i>
+        //                     </button>
+        //                     <button class="btn btn-sm btn-outline-success" 
+        //                             onclick="approveProperty(${propertyId})"
+        //                             title="Approve Property">
+        //                         <i class="fas fa-check"></i>
+        //                     </button>
+        //                     <button class="btn btn-sm btn-outline-danger" 
+        //                             onclick="rejectProperty(${propertyId})"
+        //                             title="Reject Property">
+        //                         <i class="fas fa-times"></i>
+        //                     </button>
+        //                 `);
+        //             }
+        //         }
+                
+        //         // Update the data attribute
+        //         row.attr("data-listing", newListingStatus);
+        //     }
+        // }
+        
+        
         function updatePropertyStats() {
             // Update the stats cards with new counts
             const totalProperties = $(".property-row").length;
@@ -5908,40 +6106,88 @@ $(document).ready(function() {
 
         // Account Settings Functions
         // Change Password Form Handler
-        $('#changePasswordForm').submit(function(e) {
+        console.log('Setting up change password form handler');
+        console.log('jQuery available:', typeof $ !== 'undefined');
+        console.log('Form exists:', $('#changePasswordForm').length > 0);
+        console.log('iziToast available:', typeof iziToast !== 'undefined');
+        
+        // Test if button exists
+        console.log('Change password button exists:', $('#changePasswordBtn').length > 0);
+        
+        $('#changePasswordBtn').on('click', function(e) {
+            console.log('Change password button clicked');
             e.preventDefault();
+            e.stopPropagation();
             
+            // Add visual feedback to confirm button is being clicked
+            $(this).addClass('btn-success').removeClass('btn-primary');
+            setTimeout(() => {
+                $(this).removeClass('btn-success').addClass('btn-primary');
+            }, 200);
+            
+            console.log('Change password form submitted');
+            
+            // Get form values
             const currentPassword = $('#currentPassword').val();
             const newPassword = $('#newPassword').val();
             const confirmPassword = $('#confirmPassword').val();
             
+            console.log('Form values:', {
+                currentPassword: currentPassword ? 'filled' : 'empty',
+                newPassword: newPassword ? 'filled' : 'empty',
+                confirmPassword: confirmPassword ? 'filled' : 'empty'
+            });
+            
+            console.log('Form data:', {
+                currentPassword: currentPassword ? 'filled' : 'empty',
+                newPassword: newPassword ? 'filled' : 'empty',
+                confirmPassword: confirmPassword ? 'filled' : 'empty'
+            });
+            
             // Validation
             if (!currentPassword || !newPassword || !confirmPassword) {
-                iziToast.error({
-                    title: 'Error',
-                    message: 'Please fill in all fields.',
-                    position: 'topRight'
-                });
+                console.log('Validation failed: missing fields');
+                if (typeof iziToast !== 'undefined') {
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Please fill in all fields.',
+                        position: 'topRight'
+                    });
+                } else {
+                    alert('Please fill in all fields.');
+                }
                 return;
             }
             
             if (newPassword !== confirmPassword) {
-                iziToast.error({
-                    title: 'Error',
-                    message: 'New password and confirm password do not match.',
-                    position: 'topRight'
-                });
+                console.log('Validation failed: passwords do not match');
+                if (typeof iziToast !== 'undefined') {
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'New password and confirm password do not match.',
+                        position: 'topRight'
+                    });
+                } else {
+                    alert('New password and confirm password do not match.');
+                }
                 return;
             }
             
             if (newPassword.length < 6) {
-                iziToast.error({
-                    title: 'Error',
-                    message: 'New password must be at least 6 characters long.',
-                    position: 'topRight'
-                });
+                console.log('Validation failed: password too short');
+                if (typeof iziToast !== 'undefined') {
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'New password must be at least 6 characters long.',
+                        position: 'topRight'
+                    });
+                } else {
+                    alert('New password must be at least 6 characters long.');
+                }
                 return;
             }
+            
+            console.log('Sending AJAX request to change password');
             
             // Submit form
             $.ajax({
@@ -5954,27 +6200,41 @@ $(document).ready(function() {
                 },
                 dataType: 'json',
                 success: function(response) {
+                    console.log('Change password response:', response);
                     if (response.success) {
-                        iziToast.success({
-                            title: 'Success',
-                            message: 'Password changed successfully!',
-                            position: 'topRight'
-                        });
+                        if (typeof iziToast !== 'undefined') {
+                            iziToast.success({
+                                title: 'Success',
+                                message: 'Password changed successfully!',
+                                position: 'topRight'
+                            });
+                        } else {
+                            alert('Password changed successfully!');
+                        }
                         $('#changePasswordForm')[0].reset();
                     } else {
-                        iziToast.error({
-                            title: 'Error',
-                            message: response.message || 'Failed to change password.',
-                            position: 'topRight'
-                        });
+                        if (typeof iziToast !== 'undefined') {
+                            iziToast.error({
+                                title: 'Error',
+                                message: response.message || 'Failed to change password.',
+                                position: 'topRight'
+                            });
+                        } else {
+                            alert(response.message || 'Failed to change password.');
+                        }
                     }
                 },
-                error: function() {
-                    iziToast.error({
-                        title: 'Error',
-                        message: 'An error occurred while changing password.',
-                        position: 'topRight'
-                    });
+                error: function(xhr, status, error) {
+                    console.log('Change password error:', {xhr, status, error});
+                    if (typeof iziToast !== 'undefined') {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'An error occurred while changing password.',
+                            position: 'topRight'
+                        });
+                    } else {
+                        alert('An error occurred while changing password.');
+                    }
                 }
             });
         }
@@ -6135,28 +6395,207 @@ $(document).ready(function() {
                 // Update the data attribute
                 row.attr("data-listing", newListingStatus);
             }
-        });
+        }
 
         // Password visibility toggle event listeners
-        document.getElementById("toggleCurrentPassword")?.addEventListener("click", function () {
-            const input = document.getElementById("currentPassword");
-            input.type = input.type === "password" ? "text" : "password";
-            this.querySelector("i").classList.toggle("fa-eye");
-            this.querySelector("i").classList.toggle("fa-eye-slash");
-        });
-
-        document.getElementById("toggleNewPassword")?.addEventListener("click", function () {
-            const input = document.getElementById("newPassword");
-            input.type = input.type === "password" ? "text" : "password";
-            this.querySelector("i").classList.toggle("fa-eye");
-            this.querySelector("i").classList.toggle("fa-eye-slash");
-        });
-
-        document.getElementById("toggleConfirmPassword")?.addEventListener("click", function () {
-            const input = document.getElementById("confirmPassword");
-            input.type = input.type === "password" ? "text" : "password";
-            this.querySelector("i").classList.toggle("fa-eye");
-            this.querySelector("i").classList.toggle("fa-eye-slash");
+        function setupPasswordToggles() {
+            console.log('Setting up password toggles...');
+            
+            // Simple toggle function
+            function togglePasswordVisibility(inputSelector, buttonSelector) {
+                const input = $(inputSelector);
+                const button = $(buttonSelector);
+                const icon = button.find('i');
+                
+                console.log('Toggling password for:', inputSelector);
+                console.log('Current type:', input.attr('type'));
+                
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                    console.log('Changed to text, icon to eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                    console.log('Changed to password, icon to eye');
+                }
+            }
+            
+            // Set up event listeners
+            $('#toggleCurrentPassword').off('click').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Toggle current password clicked');
+                togglePasswordVisibility('#currentPassword', '#toggleCurrentPassword');
+            });
+            
+            $('#toggleNewPassword').off('click').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Toggle new password clicked');
+                togglePasswordVisibility('#newPassword', '#toggleNewPassword');
+            });
+            
+            $('#toggleConfirmPassword').off('click').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Toggle confirm password clicked');
+                togglePasswordVisibility('#confirmPassword', '#toggleConfirmPassword');
+            });
+            
+            console.log('Password toggles setup complete');
+        }
+        
+        // Set up password toggles when document is ready
+        $(document).ready(function() {
+            console.log('Document ready - setting up password toggle listeners');
+            console.log('Toggle elements exist:', {
+                current: $('#toggleCurrentPassword').length > 0,
+                new: $('#toggleNewPassword').length > 0,
+                confirm: $('#toggleConfirmPassword').length > 0
+            });
+            
+            // Initial setup
+            setupPasswordToggles();
+            
+            // Also set up when navigating to account settings section
+            $(document).on('click', '[data-section="account-settings"]', function() {
+                setTimeout(setupPasswordToggles, 100);
+            });
+            
+            // Fallback: Also try vanilla JavaScript approach
+            setTimeout(function() {
+                console.log('Trying vanilla JavaScript fallback for password toggles');
+                
+                const toggleCurrent = document.getElementById('toggleCurrentPassword');
+                const toggleNew = document.getElementById('toggleNewPassword');
+                const toggleConfirm = document.getElementById('toggleConfirmPassword');
+                
+                if (toggleCurrent) {
+                    toggleCurrent.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('Vanilla JS: Toggle current password clicked');
+                        const input = document.getElementById('currentPassword');
+                        const icon = this.querySelector('i');
+                        
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    });
+                }
+                
+                if (toggleNew) {
+                    toggleNew.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('Vanilla JS: Toggle new password clicked');
+                        const input = document.getElementById('newPassword');
+                        const icon = this.querySelector('i');
+                        
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    });
+                }
+                
+                if (toggleConfirm) {
+                    toggleConfirm.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('Vanilla JS: Toggle confirm password clicked');
+                        const input = document.getElementById('confirmPassword');
+                        const icon = this.querySelector('i');
+                        
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    });
+                }
+            }, 500);
+            
+            // Fallback: Also try vanilla JavaScript approach for change password button
+            setTimeout(function() {
+                console.log('Setting up vanilla JS fallback for change password button');
+                const changePasswordBtn = document.getElementById('changePasswordBtn');
+                if (changePasswordBtn) {
+                    changePasswordBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('Vanilla JS: Change password button clicked');
+                        
+                        // Get form values
+                        const currentPassword = document.getElementById('currentPassword').value;
+                        const newPassword = document.getElementById('newPassword').value;
+                        const confirmPassword = document.getElementById('confirmPassword').value;
+                        
+                        console.log('Vanilla JS form values:', {
+                            currentPassword: currentPassword ? 'filled' : 'empty',
+                            newPassword: newPassword ? 'filled' : 'empty',
+                            confirmPassword: confirmPassword ? 'filled' : 'empty'
+                        });
+                        
+                        // Validation
+                        if (!currentPassword || !newPassword || !confirmPassword) {
+                            alert('Please fill in all fields.');
+                            return;
+                        }
+                        
+                        if (newPassword !== confirmPassword) {
+                            alert('New password and confirm password do not match.');
+                            return;
+                        }
+                        
+                        if (newPassword.length < 6) {
+                            alert('New password must be at least 6 characters long.');
+                            return;
+                        }
+                        
+                        console.log('Vanilla JS: Sending AJAX request');
+                        
+                        // Use fetch instead of jQuery AJAX
+                        fetch('../backend/change-password.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: new URLSearchParams({
+                                current_password: currentPassword,
+                                new_password: newPassword,
+                                confirm_password: confirmPassword
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Vanilla JS response:', data);
+                            if (data.success) {
+                                alert('Password changed successfully!');
+                                document.getElementById('changePasswordForm').reset();
+                            } else {
+                                alert(data.message || 'Failed to change password.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Vanilla JS error:', error);
+                            alert('An error occurred while changing password.');
+                        });
+                    });
+                }
+            }, 1000);
         });
 
         // Admin Properties Functions
@@ -6396,15 +6835,6 @@ $(document).ready(function() {
 
 
     </script>
-
-
-
-
-    <!-- iziToast CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
-
-    <!-- iziToast JS -->
-    <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
 
 </body>
 
