@@ -59,9 +59,9 @@ if ($soldCount > 0) {
                     <button class="btn btn-primary me-2" id="bookmarkBtn" data-bs-toggle="tooltip" title="Save Property">
                         <i class="far fa-bookmark"></i> Save
                     </button>
-                    <button class="btn btn-outline-danger" id="reportBtn" data-bs-toggle="tooltip" title="Report Property">
+                    <!-- <button class="btn btn-outline-danger" id="reportBtn" data-bs-toggle="tooltip" title="Report Property">
                         <i class="fas fa-flag"></i> Report
-                    </button>
+                    </button> -->
                     <?php if ($isSold): ?>
                 <div class="m-0">
                     <div class="alert alert-danger text-center m-0 fw-bold">This Property is Sold</div>
