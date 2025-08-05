@@ -21,6 +21,9 @@ if ($row = mysqli_fetch_assoc($result)) {
     $userName = $row['name'];
     $userEmail = $row['email'];
     $userCNIC = $row['cnic'];
+    $userPhone = $row['phone'] ?? '';
+    $userLocation = $row['location'] ?? '';
+    $userBio = $row['bio'] ?? '';
     $userRole = $row['role'];
     $userCreated = $row['created_at'];
     $picture = $row['picture'];
@@ -178,6 +181,51 @@ $stmt->close();
     .card-header.bg-gradient-primary small {
         color: rgba(255, 255, 255, 0.8);
     }
+
+    /* Validation styles */
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
+
+    .form-control.is-valid {
+        border-color: #198754;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+    }
+
+    .invalid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #dc3545;
+    }
+
+    .valid-feedback {
+        display: block;
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: #198754;
+    }
+
+    .char-counter {
+        font-size: 0.875em;
+        margin-top: 0.25rem;
+    }
+
+    .char-counter.text-warning {
+        color: #ffc107 !important;
+    }
+
+    .char-counter.text-danger {
+        color: #dc3545 !important;
+    }
+
+    .form-text {
+        font-size: 0.875em;
+        color: #6c757d;
+    }
 </style>
 
 <?php
@@ -248,9 +296,13 @@ $stmt->close();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- iziToast CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
     <!-- Custom CSS -->
     <link href="../css/styles.css" rel="stylesheet">
     <link href="../css/dashboard.css" rel="stylesheet">
+    <!-- iziToast JS -->
+    <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
 </head>
 
 <body class="dashboard-body">
@@ -279,8 +331,8 @@ $stmt->close();
 
                 <img src="<?php echo $picture ? '../' . $picture : '../images/user.png' ?>" alt="User Avatar" class="user-avatar">
                 <div class="user-info">
-                    <h6 class="user-name mb-0" id="profileName"><? $userName ?></h6>
-                    <span class="user-role" id="profileRole">Agent</span>
+                    <h6 class="user-name mb-0" id="profileName"><?php echo htmlspecialchars($userName); ?></h6>
+                    <span class="user-role" id="profileRole"><?php echo ucfirst(htmlspecialchars($userRole)); ?></span>
                 </div>
             </div>
 
@@ -969,8 +1021,8 @@ $stmt->close();
                                                     <i class="fas fa-camera"></i>
                                                 </label>
                                             </div>
-                                            <h5 class="mt-5" id="profileName">Name not set</h5>
-                                            <p class="text-muted" id="profileRole">Role not set</p>
+                                            <h5 class="mt-5" id="profileName"><?php echo htmlspecialchars($userName); ?></h5>
+                                            <p class="text-muted" id="profileRole"><?php echo ucfirst(htmlspecialchars($userRole)); ?></p>
                                         </div>
                                     </div>
                                 </div>
@@ -981,31 +1033,55 @@ $stmt->close();
 
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Full Name</label>
-                                                    <input type="text" name="full_name" class="form-control" value="">
+                                                    <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                                                    <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars($userName); ?>" 
+                                                           pattern="^[A-Za-z\s]+$" title="Name should only contain letters and spaces." required>
+                                                    <div class="invalid-feedback">Please enter a valid name with only letters and spaces.</div>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Email</label>
-                                                    <input type="email" name="email" class="form-control" value="" readonly>
+                                                    <label class="form-label">Email <span class="text-danger">*</span></label>
+                                                    <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($userEmail); ?>" readonly>
+                                                    <div class="form-text">Email cannot be changed for security reasons.</div>
                                                 </div>
                                             </div>
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Phone</label>
-                                                    <input type="text" name="phone" class="form-control" value="" 
-                                                           placeholder="03XX-XXXXXXX">
+                                                    <label class="form-label">Phone <span class="text-danger">*</span></label>
+                                                    <input type="text" name="phone" class="form-control" value="<?php echo htmlspecialchars($userPhone); ?>" 
+                                                           placeholder="03XX-XXXXXXX" pattern="^[0-9]{4}-[0-9]{7}$" title="Please enter phone number in format: 03XX-XXXXXXX" required>
+                                                    <div class="invalid-feedback">Please enter a valid phone number in format: 03XX-XXXXXXX</div>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label class="form-label">Location</label>
-                                                    <input type="text" name="location" class="form-control" value="" 
-                                                           placeholder="City, Country">
+                                                    <label class="form-label">Location <span class="text-danger">*</span></label>
+                                                    <input type="text" name="location" class="form-control" value="<?php echo htmlspecialchars($userLocation); ?>" 
+                                                           placeholder="City, Country" pattern="^[A-Za-z\s,.\-]+$" title="Location should only contain letters, spaces, commas, dots, and hyphens." required>
+                                                    <div class="invalid-feedback">Please enter a valid location with only letters, spaces, commas, dots, and hyphens.</div>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">CNIC <span class="text-danger">*</span></label>
+                                                    <input type="text" name="cnic" class="form-control" value="<?php echo htmlspecialchars($userCNIC ?? ''); ?>" 
+                                                           placeholder="12345-1234567-1" pattern="^[0-9]{5}-[0-9]{7}-[0-9]{1}$" title="Please enter CNIC in format: XXXXX-XXXXXXX-X" required>
+                                                    <div class="invalid-feedback">Please enter a valid CNIC in format: XXXXX-XXXXXXX-X</div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Account Type</label>
+                                                    <input type="text" class="form-control" value="<?php echo ucfirst(htmlspecialchars($userRole ?? 'user')); ?>" readonly>
+                                                    <div class="form-text">Account type cannot be changed.</div>
                                                 </div>
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label">Bio</label>
-                                                <textarea name="bio" class="form-control" rows="4"></textarea>
+                                                <textarea name="bio" class="form-control" rows="4" maxlength="500" placeholder="Write a short bio about yourself (max 500 characters)"><?php echo htmlspecialchars($userBio); ?></textarea>
+                                                <div class="form-text">Maximum 500 characters allowed.</div>
                                             </div>
-                                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            
+                                            <div class="text-end">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-save me-2"></i>Save Changes
+                                                </button>
+                                            </div>
                         </form>
                     </div>
             </div>
@@ -1063,10 +1139,114 @@ $stmt->close();
                                     </div>
                                 </div>
                                 <div class="text-center">
-                                    <button type="submit" class="btn btn-primary btn-lg">
+                                    <button type="button" id="changePasswordBtn" class="btn btn-primary btn-lg">
                                         <i class="fas fa-key me-2"></i>Change Password
                                     </button>
                                 </div>
+                                
+                                <!-- Inline test for password toggles and change password button -->
+                                <script>
+                                    console.log('Inline script running');
+                                    console.log('Toggle buttons found:', {
+                                        current: document.getElementById('toggleCurrentPassword'),
+                                        new: document.getElementById('toggleNewPassword'),
+                                        confirm: document.getElementById('toggleConfirmPassword')
+                                    });
+                                    console.log('Change password button found:', document.getElementById('changePasswordBtn'));
+                                    
+                                    // Simple inline toggle test
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const toggles = ['toggleCurrentPassword', 'toggleNewPassword', 'toggleConfirmPassword'];
+                                        const inputs = ['currentPassword', 'newPassword', 'confirmPassword'];
+                                        
+                                        toggles.forEach((toggleId, index) => {
+                                            const toggle = document.getElementById(toggleId);
+                                            const input = document.getElementById(inputs[index]);
+                                            
+                                            if (toggle && input) {
+                                                console.log('Setting up inline toggle for:', toggleId);
+                                                toggle.addEventListener('click', function(e) {
+                                                    e.preventDefault();
+                                                    console.log('Inline toggle clicked:', toggleId);
+                                                    
+                                                    if (input.type === 'password') {
+                                                        input.type = 'text';
+                                                        this.querySelector('i').className = 'fas fa-eye-slash';
+                                                    } else {
+                                                        input.type = 'password';
+                                                        this.querySelector('i').className = 'fas fa-eye';
+                                                    }
+                                                });
+                                            }
+                                        });
+                                        
+                                        // Test change password button
+                                        const changePasswordBtn = document.getElementById('changePasswordBtn');
+                                        if (changePasswordBtn) {
+                                            console.log('Setting up inline change password button handler');
+                                            changePasswordBtn.addEventListener('click', function(e) {
+                                                e.preventDefault();
+                                                console.log('Inline change password button clicked');
+                                                
+                                                // Get form values
+                                                const currentPassword = document.getElementById('currentPassword').value;
+                                                const newPassword = document.getElementById('newPassword').value;
+                                                const confirmPassword = document.getElementById('confirmPassword').value;
+                                                
+                                                console.log('Inline form values:', {
+                                                    currentPassword: currentPassword ? 'filled' : 'empty',
+                                                    newPassword: newPassword ? 'filled' : 'empty',
+                                                    confirmPassword: confirmPassword ? 'filled' : 'empty'
+                                                });
+                                                
+                                                // Simple validation
+                                                if (!currentPassword || !newPassword || !confirmPassword) {
+                                                    alert('Please fill in all fields.');
+                                                    return;
+                                                }
+                                                
+                                                if (newPassword !== confirmPassword) {
+                                                    alert('New password and confirm password do not match.');
+                                                    return;
+                                                }
+                                                
+                                                if (newPassword.length < 6) {
+                                                    alert('New password must be at least 6 characters long.');
+                                                    return;
+                                                }
+                                                
+                                                console.log('Inline: Sending AJAX request');
+                                                
+                                                // Use fetch for AJAX request
+                                                fetch('../backend/change-password.php', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/x-www-form-urlencoded',
+                                                    },
+                                                    body: new URLSearchParams({
+                                                        current_password: currentPassword,
+                                                        new_password: newPassword,
+                                                        confirm_password: confirmPassword
+                                                    })
+                                                })
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    console.log('Inline response:', data);
+                                                    if (data.success) {
+                                                        alert('Password changed successfully!');
+                                                        document.getElementById('changePasswordForm').reset();
+                                                    } else {
+                                                        alert(data.message || 'Failed to change password.');
+                                                    }
+                                                })
+                                                .catch(error => {
+                                                    console.error('Inline error:', error);
+                                                    alert('An error occurred while changing password.');
+                                                });
+                                            });
+                                        }
+                                    });
+                                </script>
                             </form>
                         </div>
                     </div>
@@ -1283,9 +1463,9 @@ $stmt->close();
                                 <label class="form-label">Status</label>
                                 <select class="form-select" id="statusFilter">
                                     <option value="">All Status</option>
-                                    <option value="active">Active</option>
+                                    <option value="available">Available</option>
+                                    <option value="sold">Sold</option>
                                     <option value="pending">Pending</option>
-                                    <option value="inactive">Inactive</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -1380,6 +1560,7 @@ $stmt->close();
                             while ($property = $propertiesResult->fetch_assoc()):
                             ?>
                             <tr class="property-row" 
+                                data-id="<?php echo $property['id']; ?>"
                                 data-status="<?php echo htmlspecialchars($property['status']); ?>"
                                 data-city="<?php echo htmlspecialchars($property['city']); ?>"
                                 data-type="<?php echo htmlspecialchars($property['type']); ?>"
@@ -2304,33 +2485,105 @@ function updatePropertyRow(propertyId, newListingStatus) {
 
 function toggleListingStatus(id, currentListing) {
     const newListing = currentListing === 'approved' ? 'rejected' : 'approved';
-    const action = currentListing === 'approved' ? 'hide' : 'show';
+    const action = currentListing === 'approved' ? 'reject' : 'approve';
     
     if (!confirm('Are you sure you want to ' + action + ' this property?')) return;
-    
-    showLoading(action.charAt(0).toUpperCase() + action.slice(1) + ' property...');
-    $('.btn').prop('disabled', true);
     
     $.ajax({
         url: '../backend/toggle-listing-status.php',
         method: 'POST',
-        data: { property_id: id, listing: newListing },
+        data: { id: id, action: action },
         dataType: 'json',
-        success: function(res) {
-            hideLoading();
-            $('.btn').prop('disabled', false);
-            
-            if(res.success) {
+        success: function(response) {
+            if (response.success) {
+                iziToast.success({
+                    title: 'Success',
+                    message: response.message,
+                    position: 'topRight'
+                });
                 updatePropertyRow(id, newListing);
-                alert(res.message || 'Property visibility updated successfully.');
             } else {
-                alert(res.message || 'Failed to update property visibility.');
+                iziToast.error({
+                    title: 'Error',
+                    message: response.message || 'Failed to update listing status.',
+                    position: 'topRight'
+                });
             }
         },
-        error: function() { 
-            hideLoading();
-            $('.btn').prop('disabled', false);
-            alert('Error updating property visibility.'); 
+        error: function() {
+            iziToast.error({
+                title: 'Error',
+                message: 'Error updating listing status. Please try again.',
+                position: 'topRight'
+            });
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
         }
     });
 }
@@ -2729,7 +2982,11 @@ $(document).ready(function() {
                                 position: 'topRight'
                             });
                             // Remove the row from the table
-                            $(`tr[data-property-id="${id}"]`).remove();
+                            $(`.property-row[data-id="${id}"]`).fadeOut(400, function() {
+                                $(this).remove();
+                                // Update stats immediately after row removal
+                                updatePropertyStats();
+                            });
                         } else {
                             iziToast.error({
                                 title: 'Error',
@@ -2754,7 +3011,7 @@ $(document).ready(function() {
                 $.ajax({
                     url: '../backend/delete-user.php',
                     method: 'POST',
-                    data: { user_id: userId },
+                    data: { id: userId },
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
@@ -2764,7 +3021,11 @@ $(document).ready(function() {
                                 position: 'topRight'
                             });
                             // Remove the row from the table
-                            $(`tr[data-user-id="${userId}"]`).remove();
+                            $(`.user-row[data-id="${userId}"]`).fadeOut(400, function() {
+                                $(this).remove();
+                                // Update stats immediately after row removal
+                                updateUserStats();
+                            });
                         } else {
                             iziToast.error({
                                 title: 'Error',
@@ -2788,7 +3049,7 @@ $(document).ready(function() {
         function approveProperty(id) {
             if (confirm('Are you sure you want to approve this property?')) {
                 $.ajax({
-                    url: '../backend/approve-property.php',
+                    url: '../backend/approve-property.php?v=1754257249',
                     method: 'POST',
                     data: { 
                         id: id, 
@@ -2825,7 +3086,7 @@ $(document).ready(function() {
         function rejectProperty(id) {
             if (confirm('Are you sure you want to reject this property?')) {
                 $.ajax({
-                    url: '../backend/approve-property.php',
+                    url: '../backend/approve-property.php?v=1754257249',
                     method: 'POST',
                     data: { 
                         id: id, 
@@ -2879,7 +3140,7 @@ $(document).ready(function() {
                                 message: response.message,
                                 position: 'topRight'
                             });
-                            updatePropertyRow(id, newListingStatus);
+                            updateApprovalRow(id, newListingStatus);
                         } else {
                             iziToast.error({
                                 title: 'Error',
@@ -2900,7 +3161,7 @@ $(document).ready(function() {
         }
 
         function updatePropertyRow(propertyId, newListingStatus) {
-            const row = $(`tr[data-property-id="${propertyId}"]`);
+            const row = $(`.property-row[data-id="${propertyId}"]`);
             if (row.length) {
                 // Update status badge
                 const statusCell = row.find('.status-badge');
@@ -3004,7 +3265,7 @@ $(document).ready(function() {
         function approveProperty(id) {
             if (confirm('Are you sure you want to approve this property?')) {
                 $.ajax({
-                    url: '../backend/approve-property.php',
+                    url: '../backend/approve-property.php?v=1754257249',
                     method: 'POST',
                     data: { 
                         id: id, 
@@ -3041,7 +3302,7 @@ $(document).ready(function() {
         function rejectProperty(id) {
             if (confirm('Are you sure you want to reject this property?')) {
                 $.ajax({
-                    url: '../backend/approve-property.php',
+                    url: '../backend/approve-property.php?v=1754257249',
                     method: 'POST',
                     data: { 
                         id: id, 
@@ -3095,7 +3356,7 @@ $(document).ready(function() {
                                 message: response.message,
                                 position: 'topRight'
                             });
-                            updatePropertyRow(id, newListingStatus);
+                            updateApprovalRow(id, newListingStatus);
                         } else {
                             iziToast.error({
                                 title: 'Error',
@@ -3116,7 +3377,7 @@ $(document).ready(function() {
         }
 
         function updatePropertyRow(propertyId, newListingStatus) {
-            const row = $(`tr[data-property-id="${propertyId}"]`);
+            const row = $(`.property-row[data-id="${propertyId}"]`);
             if (row.length) {
                 // Update status badge
                 const statusCell = row.find('.status-badge');
@@ -3284,6 +3545,163 @@ $(document).ready(function() {
                 position: 'topRight'
             });
         }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+            
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
+        
+        
+        function updatePropertyStats() {
+            // Update the stats cards with new counts
+            const totalProperties = $(".property-row").length;
+            const activeProperties = $(".property-row[data-status=\"active\"]").length;
+            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
+            
+            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
+            // Update stats cards if they exist
+            $(".stats-card h3").each(function() {
+                const cardText = $(this).next("p").text().toLowerCase();
+                if (cardText.includes("total properties")) {
+                    $(this).text(totalProperties);
+                } else if (cardText.includes("active properties")) {
+                    $(this).text(activeProperties);
+                } else if (cardText.includes("pending properties")) {
+                    $(this).text(pendingProperties);
+                }
+            });
+        });
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
 
         function viewUserProperties(userId) {
             iziToast.info({
@@ -3291,6 +3709,164 @@ $(document).ready(function() {
                 message: 'Viewing properties for user ID: ' + userId,
                 position: 'topRight'
             });
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
+        
+        
+        function updatePropertyStats() {
+            // Update the stats cards with new counts
+            const totalProperties = $(".property-row").length;
+            const activeProperties = $(".property-row[data-status=\"active\"]").length;
+            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
+            
+            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
+            // Update stats cards if they exist
+            $(".stats-card h3").each(function() {
+                const cardText = $(this).next("p").text().toLowerCase();
+                if (cardText.includes("total properties")) {
+                    $(this).text(totalProperties);
+                } else if (cardText.includes("active properties")) {
+                    $(this).text(activeProperties);
+                } else if (cardText.includes("pending properties")) {
+                    $(this).text(pendingProperties);
+                }
+            });
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
         }
 
         function toggleUserRole(userId, currentRole) {
@@ -3359,6 +3935,164 @@ $(document).ready(function() {
                 }
             });
         }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
+        
+        
+        function updatePropertyStats() {
+            // Update the stats cards with new counts
+            const totalProperties = $(".property-row").length;
+            const activeProperties = $(".property-row[data-status=\"active\"]").length;
+            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
+            
+            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
+            // Update stats cards if they exist
+            $(".stats-card h3").each(function() {
+                const cardText = $(this).next("p").text().toLowerCase();
+                if (cardText.includes("total properties")) {
+                    $(this).text(totalProperties);
+                } else if (cardText.includes("active properties")) {
+                    $(this).text(activeProperties);
+                } else if (cardText.includes("pending properties")) {
+                    $(this).text(pendingProperties);
+                }
+            });
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
 
         // Transaction management functions
         function viewTransactionDetails(transactionId) {
@@ -3367,6 +4101,164 @@ $(document).ready(function() {
                 message: 'Transaction details feature coming soon!',
                 position: 'topRight'
             });
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
+        
+        
+        function updatePropertyStats() {
+            // Update the stats cards with new counts
+            const totalProperties = $(".property-row").length;
+            const activeProperties = $(".property-row[data-status=\"active\"]").length;
+            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
+            
+            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
+            // Update stats cards if they exist
+            $(".stats-card h3").each(function() {
+                const cardText = $(this).next("p").text().toLowerCase();
+                if (cardText.includes("total properties")) {
+                    $(this).text(totalProperties);
+                } else if (cardText.includes("active properties")) {
+                    $(this).text(activeProperties);
+                } else if (cardText.includes("pending properties")) {
+                    $(this).text(pendingProperties);
+                }
+            });
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
         }
 
         function viewPropertyDetails(propertyId) {
@@ -3438,9 +4330,9 @@ $(document).ready(function() {
                             referralBtn.addEventListener('click', () => {
                                 navigator.clipboard.writeText(data.referral_code).then(() => {
                                     alert('Referral code copied: ' + data.referral_code);
-                                });
-                            });
-                        }
+                                                });
+            });
+        }
                     } else {
                         console.warn('Status not success:', data);
                     }
@@ -3783,6 +4675,164 @@ $(document).ready(function() {
                 position: 'topRight'
             });
         }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
+        
+        
+        function updatePropertyStats() {
+            // Update the stats cards with new counts
+            const totalProperties = $(".property-row").length;
+            const activeProperties = $(".property-row[data-status=\"active\"]").length;
+            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
+            
+            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
+            // Update stats cards if they exist
+            $(".stats-card h3").each(function() {
+                const cardText = $(this).next("p").text().toLowerCase();
+                if (cardText.includes("total properties")) {
+                    $(this).text(totalProperties);
+                } else if (cardText.includes("active properties")) {
+                    $(this).text(activeProperties);
+                } else if (cardText.includes("pending properties")) {
+                    $(this).text(pendingProperties);
+                }
+            });
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
 
         function viewUserProperties(userId) {
             // Filter properties table to show only this user's properties
@@ -3899,6 +4949,164 @@ $(document).ready(function() {
                 }
             });
         }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
+        
+        
+        function updatePropertyStats() {
+            // Update the stats cards with new counts
+            const totalProperties = $(".property-row").length;
+            const activeProperties = $(".property-row[data-status=\"active\"]").length;
+            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
+            
+            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
+            // Update stats cards if they exist
+            $(".stats-card h3").each(function() {
+                const cardText = $(this).next("p").text().toLowerCase();
+                if (cardText.includes("total properties")) {
+                    $(this).text(totalProperties);
+                } else if (cardText.includes("active properties")) {
+                    $(this).text(activeProperties);
+                } else if (cardText.includes("pending properties")) {
+                    $(this).text(pendingProperties);
+                }
+            });
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
 
         // Transaction Management Functions (already defined above)
 
@@ -3908,6 +5116,164 @@ $(document).ready(function() {
                 message: 'Transaction details feature coming soon!',
                 position: 'topRight'
             });
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
+        
+        
+        function updatePropertyStats() {
+            // Update the stats cards with new counts
+            const totalProperties = $(".property-row").length;
+            const activeProperties = $(".property-row[data-status=\"active\"]").length;
+            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
+            
+            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
+            // Update stats cards if they exist
+            $(".stats-card h3").each(function() {
+                const cardText = $(this).next("p").text().toLowerCase();
+                if (cardText.includes("total properties")) {
+                    $(this).text(totalProperties);
+                } else if (cardText.includes("active properties")) {
+                    $(this).text(activeProperties);
+                } else if (cardText.includes("pending properties")) {
+                    $(this).text(pendingProperties);
+                }
+            });
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
         }
 
         function viewPropertyDetails(propertyId) {
@@ -3955,7 +5321,7 @@ $(document).ready(function() {
             // Location field validation (same as name field in signup)
             $('input[name="location"]').on('input', function(e) {
                 // Only allow letters, spaces, and common punctuation
-                let value = this.value.replace(/[^A-Za-z\s,.-]/g, '');
+                let value = this.value.replace(/[^A-Za-z\s,.\-]/g, '');
                 if (this.value !== value) {
                     this.value = value;
                 }
@@ -3964,7 +5330,7 @@ $(document).ready(function() {
             // Location field paste validation
             $('input[name="location"]').on('paste', function(e) {
                 let paste = (e.clipboardData || window.clipboardData).getData('text');
-                let filtered = paste.replace(/[^A-Za-z\s,.-]/g, '');
+                let filtered = paste.replace(/[^A-Za-z\s,.\-]/g, '');
                 e.preventDefault();
                 // Insert filtered text at cursor position
                 const start = this.selectionStart;
@@ -3995,9 +5361,385 @@ $(document).ready(function() {
                 // Move cursor to end of inserted text
                 this.selectionStart = this.selectionEnd = start + filtered.length;
             });
+
+            // CNIC field validation (same as signup)
+            $('input[name="cnic"]').on('input', function(e) {
+                let value = this.value.replace(/\D/g, ''); // Remove all non-digits
+                if (value.length > 13) value = value.slice(0, 13); // Max 13 digits
+
+                let formatted = '';
+                if (value.length > 5) {
+                    formatted += value.slice(0, 5) + '-';
+                    if (value.length > 12) {
+                        formatted += value.slice(5, 12) + '-' + value.slice(12, 13);
+                    } else if (value.length > 5) {
+                        formatted += value.slice(5, 12);
+                    }
+                } else {
+                    formatted = value;
+                }
+                if (value.length > 12) {
+                    formatted = value.slice(0, 5) + '-' + value.slice(5, 12) + '-' + value.slice(12, 13);
+                }
+                this.value = formatted;
+            });
+
+            // CNIC field paste validation
+            $('input[name="cnic"]').on('paste', function(e) {
+                let paste = (e.clipboardData || window.clipboardData).getData('text');
+                let digits = paste.replace(/\D/g, '').substring(0, 13);
+                let formatted = digits;
+                if (digits.length > 5) {
+                    formatted = digits.slice(0, 5) + '-';
+                    if (digits.length > 12) {
+                        formatted += digits.slice(5, 12) + '-' + digits.slice(12, 13);
+                    } else if (digits.length > 5) {
+                        formatted += digits.slice(5, 12);
+                    }
+                }
+                e.preventDefault();
+                this.value = formatted;
+            });
+
+            // Bio field character counter
+            $('textarea[name="bio"]').on('input', function() {
+                const maxLength = 500;
+                const currentLength = this.value.length;
+                const remaining = maxLength - currentLength;
+                
+                // Update character counter
+                let counter = $(this).siblings('.char-counter');
+                if (counter.length === 0) {
+                    counter = $('<div class="form-text char-counter"></div>');
+                    $(this).after(counter);
+                }
+                
+                counter.text(`${currentLength}/${maxLength} characters`);
+                
+                if (currentLength > maxLength) {
+                    this.value = this.value.substring(0, maxLength);
+                    counter.text(`${maxLength}/${maxLength} characters`);
+                }
+                
+                // Change color based on remaining characters
+                if (remaining <= 50) {
+                    counter.addClass('text-warning');
+                } else {
+                    counter.removeClass('text-warning');
+                }
+                
+                if (remaining <= 10) {
+                    counter.addClass('text-danger');
+                } else {
+                    counter.removeClass('text-danger');
+                }
+            });
+
+            // Real-time validation feedback
+            $('input[name="full_name"]').on('blur', function() {
+                const pattern = /^[A-Za-z\s]+$/;
+                if (this.value && !pattern.test(this.value)) {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                } else if (this.value) {
+                    $(this).addClass('is-valid').removeClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-valid is-invalid');
+                }
+            });
+
+            $('input[name="phone"]').on('blur', function() {
+                const pattern = /^[0-9]{4}-[0-9]{7}$/;
+                if (this.value && !pattern.test(this.value)) {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                } else if (this.value) {
+                    $(this).addClass('is-valid').removeClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-valid is-invalid');
+                }
+            });
+
+            $('input[name="location"]').on('blur', function() {
+                const pattern = /^[A-Za-z\s,.\-]+$/;
+                if (this.value && !pattern.test(this.value)) {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                } else if (this.value) {
+                    $(this).addClass('is-valid').removeClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-valid is-invalid');
+                }
+            });
+
+            $('input[name="cnic"]').on('blur', function() {
+                const pattern = /^[0-9]{5}-[0-9]{7}-[0-9]{1}$/;
+                if (this.value && !pattern.test(this.value)) {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                } else if (this.value) {
+                    $(this).addClass('is-valid').removeClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-valid is-invalid');
+                }
+            });
+
+
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
+        
+        
+        // function updatePropertyStats() {
+        //     // Update the stats cards with new counts
+        //     const totalProperties = $(".property-row").length;
+        //     const activeProperties = $(".property-row[data-status=\"active\"]").length;
+        //     const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
+            
+        //     console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
+        //     // Update stats cards if they exist
+        //     $(".stats-card h3").each(function() {
+        //         const cardText = $(this).next("p").text().toLowerCase();
+        //         if (cardText.includes("total properties")) {
+        //             $(this).text(totalProperties);
+        //         } else if (cardText.includes("active properties")) {
+        //             $(this).text(activeProperties);
+        //         } else if (cardText.includes("pending properties")) {
+        //             $(this).text(pendingProperties);
+        //         }
+        //     });
+        // }
+        
+        
+        // function updateApprovalRow(propertyId, newListingStatus) {
+        //     const row = $(`.approval-row[data-id="${propertyId}"]`);
+        //     if (row.length) {
+        //         // Update the status badge
+        //         const statusBadge = row.find("td:nth-child(8) .badge");
+        //         if (statusBadge.length) {
+        //             statusBadge.removeClass("bg-success bg-danger bg-warning")
+        //                 .addClass(newListingStatus === "approved" ? "bg-success" : 
+        //                          ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+        //                 .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+        //         }
+                
+        //         // Update the action buttons
+        //         const actionButtons = row.find("td:nth-child(10) .btn-group");
+        //         if (actionButtons.length) {
+        //             if (newListingStatus === "approved") {
+        //                 actionButtons.html(`
+        //                     <button class="btn btn-sm btn-outline-primary" 
+        //                             onclick="viewPropertyForApproval(${propertyId})"
+        //                             title="View Details">
+        //                         <i class="fas fa-eye"></i>
+        //                     </button>
+        //                     <button class="btn btn-sm btn-outline-danger" 
+        //                             onclick="toggleListingStatus(${propertyId}, 'approved')"
+        //                             title="Hide Property">
+        //                         <i class="fas fa-times"></i>
+        //                     </button>
+        //                 `);
+        //             } else if (newListingStatus === "rejected") {
+        //                 actionButtons.html(`
+        //                     <button class="btn btn-sm btn-outline-primary" 
+        //                             onclick="viewPropertyForApproval(${propertyId})"
+        //                             title="View Details">
+        //                         <i class="fas fa-eye"></i>
+        //                     </button>
+        //                     <button class="btn btn-sm btn-outline-success" 
+        //                             onclick="toggleListingStatus(${propertyId}, 'rejected')"
+        //                             title="Show Property">
+        //                         <i class="fas fa-check"></i>
+        //                     </button>
+        //                 `);
+        //             } else {
+        //                 actionButtons.html(`
+        //                     <button class="btn btn-sm btn-outline-primary" 
+        //                             onclick="viewPropertyForApproval(${propertyId})"
+        //                             title="View Details">
+        //                         <i class="fas fa-eye"></i>
+        //                     </button>
+        //                     <button class="btn btn-sm btn-outline-success" 
+        //                             onclick="approveProperty(${propertyId})"
+        //                             title="Approve Property">
+        //                         <i class="fas fa-check"></i>
+        //                     </button>
+        //                     <button class="btn btn-sm btn-outline-danger" 
+        //                             onclick="rejectProperty(${propertyId})"
+        //                             title="Reject Property">
+        //                         <i class="fas fa-times"></i>
+        //                     </button>
+        //                 `);
+        //             }
+        //         }
+                
+        //         // Update the data attribute
+        //         row.attr("data-listing", newListingStatus);
+        //     }
+        // }
+        
+        
+        function updatePropertyStats() {
+            // Update the stats cards with new counts
+            const totalProperties = $(".property-row").length;
+            const activeProperties = $(".property-row[data-status=\"active\"]").length;
+            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
+            
+            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
+            // Update stats cards if they exist
+            $(".stats-card h3").each(function() {
+                const cardText = $(this).next("p").text().toLowerCase();
+                if (cardText.includes("total properties")) {
+                    $(this).text(totalProperties);
+                } else if (cardText.includes("active properties")) {
+                    $(this).text(activeProperties);
+                } else if (cardText.includes("pending properties")) {
+                    $(this).text(pendingProperties);
+                }
+            });
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
         });
 
-        $(document).ready(function() {
+        $(document).ready(function() { // Temporary debug
+            console.log('Document ready triggered');
+            
+            // Add global error handler
+            window.addEventListener('error', function(e) {
+                console.error('JavaScript error:', e.error);
+                alert('JavaScript error: ' + e.error.message);
+            });
+            
             // Only fetch saved properties for non-admin users
             <?php if (!isset($userRole) || strtolower($userRole) !== 'admin'): ?>
             fetchSavedProperties();
@@ -4031,6 +5773,8 @@ $(document).ready(function() {
                             .attr('placeholder', response.data.phone ? '' : 'Add your phone number to complete your profile.');
                         $('#profileForm input[name="location"]').val(response.data.location || '')
                             .attr('placeholder', response.data.location ? '' : 'Specify your city or address.');
+                        $('#profileForm input[name="cnic"]').val(response.data.cnic || '')
+                            .attr('placeholder', response.data.cnic ? '' : 'Enter your CNIC number');
                         $('#profileForm textarea[name="bio"]').val(response.data.bio || '')
                             .attr('placeholder', response.data.bio ? '' : 'Write a short bio about yourself or your profession.');
 
@@ -4047,11 +5791,95 @@ $(document).ready(function() {
                 }
             });
 
+
             // ----------------- Update Profile -------------------
+
+            
+
+            
             $('#profileForm').submit(function(e) {
                 e.preventDefault();
+                console.log('Profile form submit triggered');
+                alert('Form submit triggered!');
 
+                const form = this;
+                let isValid = true;
+                let validationErrors = [];
+
+                // Debug: Log all form fields
+                console.log('Form fields:');
+                $(form).find('input, textarea').each(function() {
+                    console.log($(this).attr('name') + ': ' + $(this).val());
+                });
+
+                // Validate required fields
+                $(form).find('input[required]').each(function() {
+                    console.log('Checking required field:', $(this).attr('name'), 'Value:', $(this).val());
+                    if (!this.checkValidity()) {
+                        isValid = false;
+                        $(this).addClass('is-invalid');
+                        validationErrors.push($(this).attr('name') + ' is required');
+                        console.log('Required field validation failed:', $(this).attr('name'));
+                    } else {
+                        $(this).removeClass('is-invalid');
+                        console.log('Required field validation passed:', $(this).attr('name'));
+                    }
+                });
+
+                // Custom validation for phone format
+                const phoneInput = $('input[name="phone"]');
+                const phonePattern = /^[0-9]{4}-[0-9]{7}$/;
+                console.log('Phone validation - Value:', phoneInput.val(), 'Pattern match:', phonePattern.test(phoneInput.val()));
+                if (phoneInput.val() && !phonePattern.test(phoneInput.val())) {
+                    isValid = false;
+                    phoneInput.addClass('is-invalid');
+                    validationErrors.push('Phone number must be in format: 03XX-XXXXXXX');
+                    console.log('Phone validation failed');
+                } else if (phoneInput.val()) {
+                    phoneInput.removeClass('is-invalid');
+                    console.log('Phone validation passed');
+                }
+
+                // Custom validation for CNIC format
+                const cnicInput = $('input[name="cnic"]');
+                const cnicPattern = /^[0-9]{5}-[0-9]{7}-[0-9]{1}$/;
+                console.log('CNIC validation - Value:', cnicInput.val(), 'Pattern match:', cnicPattern.test(cnicInput.val()));
+                if (cnicInput.val() && !cnicPattern.test(cnicInput.val())) {
+                    isValid = false;
+                    cnicInput.addClass('is-invalid');
+                    validationErrors.push('CNIC must be in format: XXXXX-XXXXXXX-X');
+                    console.log('CNIC validation failed');
+                } else if (cnicInput.val()) {
+                    cnicInput.removeClass('is-invalid');
+                    console.log('CNIC validation passed');
+                }
+
+                // Show debug toast with validation results
+                if (!isValid) {
+                    console.log('Validation failed. Errors:', validationErrors);
+                    iziToast.error({
+                        title: 'Validation Failed',
+                        message: 'Please fix these errors:\n' + validationErrors.join('\n'),
+                        position: 'topRight',
+                        timeout: 5000
+                    });
+                    return false;
+                }
+
+                // If validation passes, proceed with form submission
+                console.log('Validation passed, creating FormData');
+                iziToast.info({
+                    title: 'Processing',
+                    message: 'Saving profile changes...',
+                    position: 'topRight'
+                });
+                
                 var formData = new FormData(this);
+                
+                // Log form data for debugging
+                for (let pair of formData.entries()) {
+                    console.log(pair[0] + ': ' + pair[1]);
+                }
 
                 $.ajax({
                     url: '../backend/update-user-details.php',
@@ -4060,8 +5888,24 @@ $(document).ready(function() {
                     contentType: false,
                     processData: false,
                     dataType: 'json',
+                    beforeSend: function() {
+                        console.log('Sending profile update request...');
+                        iziToast.info({
+                            title: 'Sending Request',
+                            message: 'Submitting profile changes to server...',
+                            position: 'topRight'
+                        });
+                    },
                     success: function(response) {
                         console.log('Profile Update Response:', response);
+                        
+                        // Debug toast to show the response
+                        iziToast.info({
+                            title: 'Server Response',
+                            message: 'Response received: ' + JSON.stringify(response),
+                            position: 'topRight',
+                            timeout: 3000
+                        });
 
                         if (response.success) {
                             console.log('Profile update successful');
@@ -4096,18 +5940,23 @@ $(document).ready(function() {
                             }, 1000);
                         } else {
                             iziToast.error({
-                                title: 'Error',
-                                message: 'Failed to update profile.',
+                                title: 'Server Error',
+                                message: response.message || 'Failed to update profile.',
                                 position: 'topRight'
                             });
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error('Profile update error:', xhr.responseText);
+                        console.error('Status:', status);
+                        console.error('Error:', error);
+                        
+                        // Debug toast to show the error details
                         iziToast.error({
-                            title: 'Error',
-                            message: 'An error occurred while updating the profile: ' + error,
-                            position: 'topRight'
+                            title: 'AJAX Error',
+                            message: 'Status: ' + status + '\nError: ' + error + '\nResponse: ' + xhr.responseText,
+                            position: 'topRight',
+                            timeout: 5000
                         });
                     }
                 });
@@ -4116,8 +5965,11 @@ $(document).ready(function() {
             // ----------------- Profile Picture Handling -------------------
             // Handle file input change for profile picture preview
             let isProcessingFile = false;
+            
+            // Remove any existing event handlers and add new one
             $('#profilePictureInput').off('change').on('change', function() {
                 console.log('File input change event triggered');
+                console.log('Files selected:', this.files.length);
                 if (isProcessingFile) {
                     console.log('Already processing file, skipping');
                     return;
@@ -4126,6 +5978,8 @@ $(document).ready(function() {
                 
                 const file = this.files[0];
                 if (file) {
+                    console.log('File selected:', file.name, file.type, file.size);
+                    
                     // Validate file type
                     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
                     if (!allowedTypes.includes(file.type)) {
@@ -4154,17 +6008,45 @@ $(document).ready(function() {
                     // Preview the image
                     const reader = new FileReader();
                     reader.onload = function(e) {
+                        console.log('Image preview loaded');
                         $('.profile-avatar').attr('src', e.target.result);
+                        isProcessingFile = false;
+                    };
+                    reader.onerror = function() {
+                        console.error('Error reading file');
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Failed to read the image file',
+                            position: 'topRight'
+                        });
                         isProcessingFile = false;
                     };
                     reader.readAsDataURL(file);
                 } else {
+                    console.log('No file selected');
                     isProcessingFile = false;
                 }
             });
 
-            // Handle upload button click - using label approach (no JavaScript needed)
-            // The label automatically triggers the file input when clicked
+            // Handle upload button click
+            $('#uploadPictureBtn').off('click').on('click', function(e) {
+                e.preventDefault();
+                console.log('Upload button clicked');
+                $('#profilePictureInput').click();
+            });
+
+
+
+            // Test if file input exists and is accessible
+            console.log('File input element:', $('#profilePictureInput').length);
+            console.log('Upload button element:', $('#uploadPictureBtn').length);
+            
+            // Add a test button to manually trigger file input (for debugging)
+            if ($('#uploadPictureBtn').length === 0) {
+                console.error('Upload button not found!');
+            } else {
+                console.log('Upload button found and ready');
+            }
 
             // ----------------- Fetch User Properties -------------------
             fetchUserProperties();
@@ -4486,40 +6368,88 @@ $(document).ready(function() {
 
         // Account Settings Functions
         // Change Password Form Handler
-        $('#changePasswordForm').submit(function(e) {
+        console.log('Setting up change password form handler');
+        console.log('jQuery available:', typeof $ !== 'undefined');
+        console.log('Form exists:', $('#changePasswordForm').length > 0);
+        console.log('iziToast available:', typeof iziToast !== 'undefined');
+        
+        // Test if button exists
+        console.log('Change password button exists:', $('#changePasswordBtn').length > 0);
+        
+        $('#changePasswordBtn').on('click', function(e) {
+            console.log('Change password button clicked');
             e.preventDefault();
+            e.stopPropagation();
             
+            // Add visual feedback to confirm button is being clicked
+            $(this).addClass('btn-success').removeClass('btn-primary');
+            setTimeout(() => {
+                $(this).removeClass('btn-success').addClass('btn-primary');
+            }, 200);
+            
+            console.log('Change password form submitted');
+            
+            // Get form values
             const currentPassword = $('#currentPassword').val();
             const newPassword = $('#newPassword').val();
             const confirmPassword = $('#confirmPassword').val();
             
+            console.log('Form values:', {
+                currentPassword: currentPassword ? 'filled' : 'empty',
+                newPassword: newPassword ? 'filled' : 'empty',
+                confirmPassword: confirmPassword ? 'filled' : 'empty'
+            });
+            
+            console.log('Form data:', {
+                currentPassword: currentPassword ? 'filled' : 'empty',
+                newPassword: newPassword ? 'filled' : 'empty',
+                confirmPassword: confirmPassword ? 'filled' : 'empty'
+            });
+            
             // Validation
             if (!currentPassword || !newPassword || !confirmPassword) {
-                iziToast.error({
-                    title: 'Error',
-                    message: 'Please fill in all fields.',
-                    position: 'topRight'
-                });
+                console.log('Validation failed: missing fields');
+                if (typeof iziToast !== 'undefined') {
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Please fill in all fields.',
+                        position: 'topRight'
+                    });
+                } else {
+                    alert('Please fill in all fields.');
+                }
                 return;
             }
             
             if (newPassword !== confirmPassword) {
-                iziToast.error({
-                    title: 'Error',
-                    message: 'New password and confirm password do not match.',
-                    position: 'topRight'
-                });
+                console.log('Validation failed: passwords do not match');
+                if (typeof iziToast !== 'undefined') {
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'New password and confirm password do not match.',
+                        position: 'topRight'
+                    });
+                } else {
+                    alert('New password and confirm password do not match.');
+                }
                 return;
             }
             
             if (newPassword.length < 6) {
-                iziToast.error({
-                    title: 'Error',
-                    message: 'New password must be at least 6 characters long.',
-                    position: 'topRight'
-                });
+                console.log('Validation failed: password too short');
+                if (typeof iziToast !== 'undefined') {
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'New password must be at least 6 characters long.',
+                        position: 'topRight'
+                    });
+                } else {
+                    alert('New password must be at least 6 characters long.');
+                }
                 return;
             }
+            
+            console.log('Sending AJAX request to change password');
             
             // Submit form
             $.ajax({
@@ -4532,51 +6462,402 @@ $(document).ready(function() {
                 },
                 dataType: 'json',
                 success: function(response) {
+                    console.log('Change password response:', response);
                     if (response.success) {
-                        iziToast.success({
-                            title: 'Success',
-                            message: 'Password changed successfully!',
-                            position: 'topRight'
-                        });
+                        if (typeof iziToast !== 'undefined') {
+                            iziToast.success({
+                                title: 'Success',
+                                message: 'Password changed successfully!',
+                                position: 'topRight'
+                            });
+                        } else {
+                            alert('Password changed successfully!');
+                        }
                         $('#changePasswordForm')[0].reset();
                     } else {
-                        iziToast.error({
-                            title: 'Error',
-                            message: response.message || 'Failed to change password.',
-                            position: 'topRight'
-                        });
+                        if (typeof iziToast !== 'undefined') {
+                            iziToast.error({
+                                title: 'Error',
+                                message: response.message || 'Failed to change password.',
+                                position: 'topRight'
+                            });
+                        } else {
+                            alert(response.message || 'Failed to change password.');
+                        }
                     }
                 },
-                error: function() {
-                    iziToast.error({
-                        title: 'Error',
-                        message: 'An error occurred while changing password.',
-                        position: 'topRight'
-                    });
+                error: function(xhr, status, error) {
+                    console.log('Change password error:', {xhr, status, error});
+                    if (typeof iziToast !== 'undefined') {
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'An error occurred while changing password.',
+                            position: 'topRight'
+                        });
+                    } else {
+                        alert('An error occurred while changing password.');
+                    }
                 }
             });
-        });
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
+        
+        
+        function updatePropertyStats() {
+            // Update the stats cards with new counts
+            const totalProperties = $(".property-row").length;
+            const activeProperties = $(".property-row[data-status=\"active\"]").length;
+            const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
+            
+            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
+            // Update stats cards if they exist
+            $(".stats-card h3").each(function() {
+                const cardText = $(this).next("p").text().toLowerCase();
+                if (cardText.includes("total properties")) {
+                    $(this).text(totalProperties);
+                } else if (cardText.includes("active properties")) {
+                    $(this).text(activeProperties);
+                } else if (cardText.includes("pending properties")) {
+                    $(this).text(pendingProperties);
+                }
+            });
+        }
+        
+        
+        function updateApprovalRow(propertyId, newListingStatus) {
+            const row = $(`.approval-row[data-id="${propertyId}"]`);
+            if (row.length) {
+                // Update the status badge
+                const statusBadge = row.find("td:nth-child(8) .badge");
+                if (statusBadge.length) {
+                    statusBadge.removeClass("bg-success bg-danger bg-warning")
+                        .addClass(newListingStatus === "approved" ? "bg-success" : 
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
+                        .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
+                }
+                
+                // Update the action buttons
+                const actionButtons = row.find("td:nth-child(10) .btn-group");
+                if (actionButtons.length) {
+                    if (newListingStatus === "approved") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="toggleListingStatus(${propertyId}, 'approved')"
+                                    title="Hide Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    } else if (newListingStatus === "rejected") {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="toggleListingStatus(${propertyId}, 'rejected')"
+                                    title="Show Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        `);
+                    } else {
+                        actionButtons.html(`
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="viewPropertyForApproval(${propertyId})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" 
+                                    onclick="approveProperty(${propertyId})"
+                                    title="Approve Property">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="rejectProperty(${propertyId})"
+                                    title="Reject Property">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `);
+                    }
+                }
+                
+                // Update the data attribute
+                row.attr("data-listing", newListingStatus);
+            }
+        }
 
         // Password visibility toggle event listeners
-        document.getElementById("toggleCurrentPassword")?.addEventListener("click", function () {
-            const input = document.getElementById("currentPassword");
-            input.type = input.type === "password" ? "text" : "password";
-            this.querySelector("i").classList.toggle("fa-eye");
-            this.querySelector("i").classList.toggle("fa-eye-slash");
-        });
-
-        document.getElementById("toggleNewPassword")?.addEventListener("click", function () {
-            const input = document.getElementById("newPassword");
-            input.type = input.type === "password" ? "text" : "password";
-            this.querySelector("i").classList.toggle("fa-eye");
-            this.querySelector("i").classList.toggle("fa-eye-slash");
-        });
-
-        document.getElementById("toggleConfirmPassword")?.addEventListener("click", function () {
-            const input = document.getElementById("confirmPassword");
-            input.type = input.type === "password" ? "text" : "password";
-            this.querySelector("i").classList.toggle("fa-eye");
-            this.querySelector("i").classList.toggle("fa-eye-slash");
+        function setupPasswordToggles() {
+            console.log('Setting up password toggles...');
+            
+            // Simple toggle function
+            function togglePasswordVisibility(inputSelector, buttonSelector) {
+                const input = $(inputSelector);
+                const button = $(buttonSelector);
+                const icon = button.find('i');
+                
+                console.log('Toggling password for:', inputSelector);
+                console.log('Current type:', input.attr('type'));
+                
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                    console.log('Changed to text, icon to eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                    console.log('Changed to password, icon to eye');
+                }
+            }
+            
+            // Set up event listeners
+            $('#toggleCurrentPassword').off('click').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Toggle current password clicked');
+                togglePasswordVisibility('#currentPassword', '#toggleCurrentPassword');
+            });
+            
+            $('#toggleNewPassword').off('click').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Toggle new password clicked');
+                togglePasswordVisibility('#newPassword', '#toggleNewPassword');
+            });
+            
+            $('#toggleConfirmPassword').off('click').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Toggle confirm password clicked');
+                togglePasswordVisibility('#confirmPassword', '#toggleConfirmPassword');
+            });
+            
+            console.log('Password toggles setup complete');
+        }
+        
+        // Set up password toggles when document is ready
+        $(document).ready(function() {
+            console.log('Document ready - setting up password toggle listeners');
+            console.log('Toggle elements exist:', {
+                current: $('#toggleCurrentPassword').length > 0,
+                new: $('#toggleNewPassword').length > 0,
+                confirm: $('#toggleConfirmPassword').length > 0
+            });
+            
+            // Initial setup
+            setupPasswordToggles();
+            
+            // Also set up when navigating to account settings section
+            $(document).on('click', '[data-section="account-settings"]', function() {
+                setTimeout(setupPasswordToggles, 100);
+            });
+            
+            // Fallback: Also try vanilla JavaScript approach
+            setTimeout(function() {
+                console.log('Trying vanilla JavaScript fallback for password toggles');
+                
+                const toggleCurrent = document.getElementById('toggleCurrentPassword');
+                const toggleNew = document.getElementById('toggleNewPassword');
+                const toggleConfirm = document.getElementById('toggleConfirmPassword');
+                
+                if (toggleCurrent) {
+                    toggleCurrent.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('Vanilla JS: Toggle current password clicked');
+                        const input = document.getElementById('currentPassword');
+                        const icon = this.querySelector('i');
+                        
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    });
+                }
+                
+                if (toggleNew) {
+                    toggleNew.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('Vanilla JS: Toggle new password clicked');
+                        const input = document.getElementById('newPassword');
+                        const icon = this.querySelector('i');
+                        
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    });
+                }
+                
+                if (toggleConfirm) {
+                    toggleConfirm.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('Vanilla JS: Toggle confirm password clicked');
+                        const input = document.getElementById('confirmPassword');
+                        const icon = this.querySelector('i');
+                        
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    });
+                }
+            }, 500);
+            
+            // Fallback: Also try vanilla JavaScript approach for change password button
+            setTimeout(function() {
+                console.log('Setting up vanilla JS fallback for change password button');
+                const changePasswordBtn = document.getElementById('changePasswordBtn');
+                if (changePasswordBtn) {
+                    changePasswordBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('Vanilla JS: Change password button clicked');
+                        
+                        // Get form values
+                        const currentPassword = document.getElementById('currentPassword').value;
+                        const newPassword = document.getElementById('newPassword').value;
+                        const confirmPassword = document.getElementById('confirmPassword').value;
+                        
+                        console.log('Vanilla JS form values:', {
+                            currentPassword: currentPassword ? 'filled' : 'empty',
+                            newPassword: newPassword ? 'filled' : 'empty',
+                            confirmPassword: confirmPassword ? 'filled' : 'empty'
+                        });
+                        
+                        // Validation
+                        if (!currentPassword || !newPassword || !confirmPassword) {
+                            alert('Please fill in all fields.');
+                            return;
+                        }
+                        
+                        if (newPassword !== confirmPassword) {
+                            alert('New password and confirm password do not match.');
+                            return;
+                        }
+                        
+                        if (newPassword.length < 6) {
+                            alert('New password must be at least 6 characters long.');
+                            return;
+                        }
+                        
+                        console.log('Vanilla JS: Sending AJAX request');
+                        
+                        // Use fetch instead of jQuery AJAX
+                        fetch('../backend/change-password.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: new URLSearchParams({
+                                current_password: currentPassword,
+                                new_password: newPassword,
+                                confirm_password: confirmPassword
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Vanilla JS response:', data);
+                            if (data.success) {
+                                alert('Password changed successfully!');
+                                document.getElementById('changePasswordForm').reset();
+                            } else {
+                                alert(data.message || 'Failed to change password.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Vanilla JS error:', error);
+                            alert('An error occurred while changing password.');
+                        });
+                    });
+                }
+            }, 1000);
         });
 
         // Admin Properties Functions
@@ -4693,7 +6974,7 @@ $(document).ready(function() {
         function approveProperty(id) {
             if (confirm('Are you sure you want to approve this property?')) {
                 $.ajax({
-                    url: '../backend/approve-property.php',
+                    url: '../backend/approve-property.php?v=1754257249',
                     method: 'POST',
                     data: { 
                         id: id, 
@@ -4733,7 +7014,7 @@ $(document).ready(function() {
         function rejectProperty(id) {
             if (confirm('Are you sure you want to reject this property?')) {
                 $.ajax({
-                    url: '../backend/approve-property.php',
+                    url: '../backend/approve-property.php?v=1754257249',
                     method: 'POST',
                     data: { 
                         id: id, 
@@ -4776,7 +7057,7 @@ $(document).ready(function() {
             
             if (confirm(`Are you sure you want to ${action} this property?`)) {
                 $.ajax({
-                    url: '../backend/approve-property.php',
+                    url: '../backend/approve-property.php?v=1754257249',
                     method: 'POST',
                     data: { 
                         id: id, 
@@ -4816,15 +7097,6 @@ $(document).ready(function() {
 
 
     </script>
-
-
-
-
-    <!-- iziToast CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast/dist/css/iziToast.min.css">
-
-    <!-- iziToast JS -->
-    <script src="https://cdn.jsdelivr.net/npm/izitoast/dist/js/iziToast.min.js"></script>
 
 </body>
 

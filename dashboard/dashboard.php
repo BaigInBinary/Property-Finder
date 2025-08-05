@@ -1,13 +1,13 @@
 <?php
 session_start();
-require_once '../backend/db.php'; // adjust path if needed
+require_once "../backend/db.php"; // adjust path if needed
 
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION["user_id"])) {
     header("Location: ../login.php?message=login_required");
-    exit;
+    exit();
 }
 
-$userId = $_SESSION['user_id'];
+$userId = $_SESSION["user_id"];
 
 // Fetch user name from database
 $sql = "SELECT * FROM users WHERE id = ?";
@@ -16,30 +16,34 @@ mysqli_stmt_bind_param($stmt, "i", $userId);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 
-$userName = 'User';
+$userName = "User";
 if ($row = mysqli_fetch_assoc($result)) {
-    $userName = $row['name'];
-    $userEmail = $row['email'];
-    $userCNIC = $row['cnic'];
-    $userPhone = $row['phone'] ?? '';
-    $userLocation = $row['location'] ?? '';
-    $userBio = $row['bio'] ?? '';
-    $userRole = $row['role'];
-    $userCreated = $row['created_at'];
-    $picture = $row['picture'];
+    $userName = $row["name"];
+    $userEmail = $row["email"];
+    $userCNIC = $row["cnic"];
+    $userPhone = $row["phone"] ?? "";
+    $userLocation = $row["location"] ?? "";
+    $userBio = $row["bio"] ?? "";
+    $userRole = $row["role"];
+    $userCreated = $row["created_at"];
+    $picture = $row["picture"];
 }
 
 // Fetch revenue and expenditure for the user
 $revenue = 0;
 $expenditure = 0;
-$stmt = $conn->prepare("SELECT SUM(amount) FROM transactions WHERE seller_id = ?");
-$stmt->bind_param('i', $userId);
+$stmt = $conn->prepare(
+    "SELECT SUM(amount) FROM transactions WHERE seller_id = ?"
+);
+$stmt->bind_param("i", $userId);
 $stmt->execute();
 $stmt->bind_result($revenue);
 $stmt->fetch();
 $stmt->close();
-$stmt = $conn->prepare("SELECT SUM(amount) FROM transactions WHERE buyer_id = ?");
-$stmt->bind_param('i', $userId);
+$stmt = $conn->prepare(
+    "SELECT SUM(amount) FROM transactions WHERE buyer_id = ?"
+);
+$stmt->bind_param("i", $userId);
 $stmt->execute();
 $stmt->bind_result($expenditure);
 $stmt->fetch();
@@ -51,7 +55,7 @@ $stmt = $conn->prepare("SELECT t.*, p.title AS property_title, bu.name AS buyer_
     LEFT JOIN users bu ON t.buyer_id = bu.id
     LEFT JOIN users se ON t.seller_id = se.id
     WHERE t.buyer_id = ? OR t.seller_id = ? ORDER BY t.created_at DESC");
-$stmt->bind_param('ii', $userId, $userId);
+$stmt->bind_param("ii", $userId, $userId);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
@@ -229,60 +233,67 @@ $stmt->close();
 </style>
 
 <?php
-                require_once '../backend/db.php';
+require_once "../backend/db.php";
 
-                $userId = $_SESSION['user_id'] ?? null;
-                if (!$userId) {
-                    die('User not logged in.');
-                }
+$userId = $_SESSION["user_id"] ?? null;
+if (!$userId) {
+    die("User not logged in.");
+}
 
-                // Posted Properties
-                $postedCount = 0;
-                $stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE user_id = ?");
-                $stmt->bind_param('i', $userId);
-                $stmt->execute();
-                $stmt->bind_result($postedCount);
-                $stmt->fetch();
-                $stmt->close();
+// Posted Properties
+$postedCount = 0;
+$stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE user_id = ?");
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$stmt->bind_result($postedCount);
+$stmt->fetch();
+$stmt->close();
 
-                // Saved Properties
-                $savedCount = 0;
-                $stmt = $conn->prepare("SELECT COUNT(*) FROM saved_properties WHERE user_id = ?");
-                $stmt->bind_param('i', $userId);
-                $stmt->execute();
-                $stmt->bind_result($savedCount);
-                $stmt->fetch();
-                $stmt->close();
+// Saved Properties
+$savedCount = 0;
+$stmt = $conn->prepare(
+    "SELECT COUNT(*) FROM saved_properties WHERE user_id = ?"
+);
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$stmt->bind_result($savedCount);
+$stmt->fetch();
+$stmt->close();
 
-                // Reward Points
-                $rewardPoints = 0;
-                $stmt = $conn->prepare("SELECT SUM(bonus_points_awarded) FROM referrals WHERE referrer_id = ?");
-                $stmt->bind_param('i', $userId);
-                $stmt->execute();
-                $stmt->bind_result($rewardPoints);
-                $stmt->fetch();
-                $stmt->close();
+// Reward Points
+$rewardPoints = 0;
+$stmt = $conn->prepare(
+    "SELECT SUM(bonus_points_awarded) FROM referrals WHERE referrer_id = ?"
+);
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$stmt->bind_result($rewardPoints);
+$stmt->fetch();
+$stmt->close();
 
-                $stmt = $conn->prepare("SELECT id, title, location, price, images_json FROM properties WHERE user_id = ? ORDER BY id DESC LIMIT 5");
+$stmt = $conn->prepare(
+    "SELECT id, title, location, price, images_json FROM properties WHERE user_id = ? ORDER BY id DESC LIMIT 5"
+);
 
-                if (!$stmt) {
-                    die("Prepare failed: " . $conn->error);
-                }
+if (!$stmt) {
+    die("Prepare failed: " . $conn->error);
+}
 
-                $stmt->bind_param('i', $userId);
-                $stmt->execute();
-                $result = $stmt->get_result();
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$result = $stmt->get_result();
 
-                $recentProperties = [];
-                while ($row = $result->fetch_assoc()) {
-                    $images = json_decode($row['images_json'], true);
-                    $row['thumbnail'] = (!empty($images) && isset($images[0])) ? $images[0] : 'https://via.placeholder.com/100x100?text=No+Image';
-                    $recentProperties[] = $row;
-                }
-                $stmt->close();
-
-
-                ?>
+$recentProperties = [];
+while ($row = $result->fetch_assoc()) {
+    $images = json_decode($row["images_json"], true);
+    $row["thumbnail"] =
+        !empty($images) && isset($images[0])
+            ? $images[0]
+            : "https://via.placeholder.com/100x100?text=No+Image";
+    $recentProperties[] = $row;
+}
+$stmt->close();
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -329,10 +340,16 @@ $stmt->close();
 
             <div class="sidebar-user">
 
-                <img src="<?php echo $picture ? '../' . $picture : '../images/user.png' ?>" alt="User Avatar" class="user-avatar">
+                <img src="<?php echo $picture
+                    ? "../" . $picture
+                    : "../images/user.png"; ?>" alt="User Avatar" class="user-avatar">
                 <div class="user-info">
-                    <h6 class="user-name mb-0" id="profileName"><?php echo htmlspecialchars($userName); ?></h6>
-                    <span class="user-role" id="profileRole"><?php echo ucfirst(htmlspecialchars($userRole)); ?></span>
+                    <h6 class="user-name mb-0" id="profileName"><?php echo htmlspecialchars(
+                        $userName
+                    ); ?></h6>
+                    <span class="user-role" id="profileRole"><?php echo ucfirst(
+                        htmlspecialchars($userRole)
+                    ); ?></span>
                 </div>
             </div>
 
@@ -355,7 +372,10 @@ $stmt->close();
                         <span>Account Settings</span>
                     </a>
                 </li>
-                <?php if (!isset($userRole) || strtolower($userRole) !== 'admin'): ?>
+                <?php if (
+                    !isset($userRole) ||
+                    strtolower($userRole) !== "admin"
+                ): ?>
                 <li class="nav-item">
                     <a href="#properties" class="nav-link" data-section="properties">
                         <i class="fas fa-building"></i>
@@ -382,7 +402,10 @@ $stmt->close();
                     </a>
                 </li>
                 <?php endif; ?>
-                <?php if (!isset($userRole) || strtolower($userRole) !== 'admin'): ?>
+                <?php if (
+                    !isset($userRole) ||
+                    strtolower($userRole) !== "admin"
+                ): ?>
                 <li class="nav-item">
                     <a href="#transactions" class="nav-link" data-section="transactions">
                         <i class="fas fa-exchange-alt"></i>
@@ -390,7 +413,10 @@ $stmt->close();
                     </a>
                 </li>
                 <?php endif; ?>
-                <?php if (isset($userRole) && strtolower($userRole) === 'admin'): ?>
+                <?php if (
+                    isset($userRole) &&
+                    strtolower($userRole) === "admin"
+                ): ?>
                 <li class="nav-item">
                     <a href="#all-properties" class="nav-link" data-section="all-properties">
                         <i class="fas fa-building"></i>
@@ -553,7 +579,9 @@ $stmt->close();
                             <div class="dropdown">
                                 <button class="btn btn-link dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
                                     <!-- <img src="images/default-avatar.png" alt="User Avatar" class="avatar-sm me-2"> -->
-                                    <span class="d-none d-md-inline"><?php echo ucfirst($userName) ?></span>
+                                    <span class="d-none d-md-inline"><?php echo ucfirst(
+                                        $userName
+                                    ); ?></span>
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-end">
                                     <!-- <a class="dropdown-item" href="#profile">
@@ -580,7 +608,10 @@ $stmt->close();
 
                         <!-- Stats Cards -->
                         <div class="row g-4 mb-4">
-                            <?php if (isset($userRole) && strtolower($userRole) === 'admin'): ?>
+                            <?php if (
+                                isset($userRole) &&
+                                strtolower($userRole) === "admin"
+                            ): ?>
                                 <!-- Admin Stats -->
                                 <?php
                                 // Fetch admin stats
@@ -588,30 +619,38 @@ $stmt->close();
                                 $totalTransactions = 0;
                                 $totalUsers = 0;
                                 $totalRevenue = 0;
-                                
+
                                 // Total Properties
-                                $stmt = $conn->prepare("SELECT COUNT(*) FROM properties");
+                                $stmt = $conn->prepare(
+                                    "SELECT COUNT(*) FROM properties"
+                                );
                                 $stmt->execute();
                                 $stmt->bind_result($totalProperties);
                                 $stmt->fetch();
                                 $stmt->close();
-                                
+
                                 // Total Transactions
-                                $stmt = $conn->prepare("SELECT COUNT(*) FROM transactions");
+                                $stmt = $conn->prepare(
+                                    "SELECT COUNT(*) FROM transactions"
+                                );
                                 $stmt->execute();
                                 $stmt->bind_result($totalTransactions);
                                 $stmt->fetch();
                                 $stmt->close();
-                                
+
                                 // Total Users
-                                $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE role != 'admin'");
+                                $stmt = $conn->prepare(
+                                    "SELECT COUNT(*) FROM users WHERE role != 'admin'"
+                                );
                                 $stmt->execute();
                                 $stmt->bind_result($totalUsers);
                                 $stmt->fetch();
                                 $stmt->close();
-                                
+
                                 // Total Revenue
-                                $stmt = $conn->prepare("SELECT SUM(amount) FROM transactions");
+                                $stmt = $conn->prepare(
+                                    "SELECT SUM(amount) FROM transactions"
+                                );
                                 $stmt->execute();
                                 $stmt->bind_result($totalRevenue);
                                 $stmt->fetch();
@@ -660,7 +699,9 @@ $stmt->close();
                                             <i class="fas fa-wallet"></i>
                                         </div>
                                         <div class="stats-info">
-                                            <h3>PKR <?php echo number_format($totalRevenue ?: 0); ?></h3>
+                                            <h3>PKR <?php echo number_format(
+                                                $totalRevenue ?: 0
+                                            ); ?></h3>
                                             <p>Total Revenue</p>
                                         </div>
                                     </div>
@@ -697,7 +738,8 @@ $stmt->close();
                                             <i class="fas fa-gift"></i>
                                         </div>
                                         <div class="stats-info">
-                                            <h3><?php echo $rewardPoints ?: 0; ?></h3>
+                                            <h3><?php echo $rewardPoints ?:
+                                                0; ?></h3>
                                             <p>Reward Points</p>
                                         </div>
                                     </div>
@@ -708,7 +750,9 @@ $stmt->close();
                                             <i class="fas fa-wallet"></i>
                                         </div>
                                         <div class="stats-info">
-                                            <h3>PKR <?php echo number_format($revenue ?: 0); ?></h3>
+                                            <h3>PKR <?php echo number_format(
+                                                $revenue ?: 0
+                                            ); ?></h3>
                                             <p>Total Revenue (as Seller)</p>
                                         </div>
                                     </div>
@@ -719,7 +763,9 @@ $stmt->close();
                                             <i class="fas fa-credit-card"></i>
                                         </div>
                                         <div class="stats-info">
-                                            <h3>PKR <?php echo number_format($expenditure ?: 0); ?></h3>
+                                            <h3>PKR <?php echo number_format(
+                                                $expenditure ?: 0
+                                            ); ?></h3>
                                             <p>Total Expenditure (as Buyer)</p>
                                         </div>
                                     </div>
@@ -733,7 +779,11 @@ $stmt->close();
                                 <div class="card">
                                     <div class="card-header">
                                         <h5 class="card-title mb-0">
-                                            <?php if (isset($userRole) && strtolower($userRole) === 'admin'): ?>
+                                            <?php if (
+                                                isset($userRole) &&
+                                                strtolower($userRole) ===
+                                                    "admin"
+                                            ): ?>
                                                 Recent Properties
                                             <?php else: ?>
                                                 Recent Properties 
@@ -756,7 +806,12 @@ $stmt->close();
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <?php if (isset($userRole) && strtolower($userRole) === 'admin'): ?>
+                                                    <?php if (
+                                                        isset($userRole) &&
+                                                        strtolower(
+                                                            $userRole
+                                                        ) === "admin"
+                                                    ): ?>
                                                         <!-- Admin Recent Properties -->
                                                         <?php
                                                         $adminRecentQuery = "SELECT p.*, u.name as owner_name, u.email as owner_email 
@@ -764,29 +819,82 @@ $stmt->close();
                                                                            LEFT JOIN users u ON p.user_id = u.id 
                                                                            ORDER BY p.created_at DESC 
                                                                            LIMIT 5";
-                                                        $adminRecentResult = $conn->query($adminRecentQuery);
-                                                        while ($property = $adminRecentResult->fetch_assoc()):
-                                                        ?>
+                                                        $adminRecentResult = $conn->query(
+                                                            $adminRecentQuery
+                                                        );
+                                                        while (
+                                                            $property = $adminRecentResult->fetch_assoc()
+                                                        ): ?>
                                                             <tr>
-                                                                <td><?php echo htmlspecialchars($property['id']); ?></td>
-                                                                <td><?php echo htmlspecialchars($property['title']); ?></td>
+                                                                <td><?php echo htmlspecialchars(
+                                                                    $property[
+                                                                        "id"
+                                                                    ]
+                                                                ); ?></td>
+                                                                <td><?php echo htmlspecialchars(
+                                                                    $property[
+                                                                        "title"
+                                                                    ]
+                                                                ); ?></td>
                                                                 <td>
                                                                     <div>
-                                                                        <strong><?php echo htmlspecialchars($property['owner_name']); ?></strong>
-                                                                        <br><small class="text-muted"><?php echo htmlspecialchars($property['owner_email']); ?></small>
+                                                                        <strong><?php echo htmlspecialchars(
+                                                                            $property[
+                                                                                "owner_name"
+                                                                            ]
+                                                                        ); ?></strong>
+                                                                        <br><small class="text-muted"><?php echo htmlspecialchars(
+                                                                            $property[
+                                                                                "owner_email"
+                                                                            ]
+                                                                        ); ?></small>
                                                                     </div>
                                                                 </td>
-                                                                <td><?php echo htmlspecialchars($property['city']); ?></td>
-                                                                <td><?php echo htmlspecialchars($property['type']); ?></td>
-                                                                <td><strong>PKR <?php echo number_format($property['price']); ?></strong></td>
+                                                                <td><?php echo htmlspecialchars(
+                                                                    $property[
+                                                                        "city"
+                                                                    ]
+                                                                ); ?></td>
+                                                                <td><?php echo htmlspecialchars(
+                                                                    $property[
+                                                                        "type"
+                                                                    ]
+                                                                ); ?></td>
+                                                                <td><strong>PKR <?php echo number_format(
+                                                                    $property[
+                                                                        "price"
+                                                                    ]
+                                                                ); ?></strong></td>
                                                                 <td>
-                                                                    <span class="badge bg-<?php echo $property['status'] === 'active' ? 'success' : ($property['status'] === 'pending' ? 'warning' : 'secondary'); ?>">
-                                                                        <?php echo ucfirst($property['status']); ?>
+                                                                    <span class="badge bg-<?php echo $property[
+                                                                        "status"
+                                                                    ] ===
+                                                                    "active"
+                                                                        ? "success"
+                                                                        : ($property[
+                                                                            "status"
+                                                                        ] ===
+                                                                        "pending"
+                                                                            ? "warning"
+                                                                            : "secondary"); ?>">
+                                                                        <?php echo ucfirst(
+                                                                            $property[
+                                                                                "status"
+                                                                            ]
+                                                                        ); ?>
                                                                     </span>
                                                                 </td>
-                                                                <td><?php echo date('M d, Y', strtotime($property['created_at'])); ?></td>
+                                                                <td><?php echo date(
+                                                                    "M d, Y",
+                                                                    strtotime(
+                                                                        $property[
+                                                                            "created_at"
+                                                                        ]
+                                                                    )
+                                                                ); ?></td>
                                                             </tr>
-                                                        <?php endwhile; ?>
+                                                        <?php endwhile;
+                                                        ?>
                                                     <?php else: ?>
                                                         <!-- Regular User Recent Properties -->
                                                         <?php
@@ -796,52 +904,129 @@ $stmt->close();
                                                                           WHERE p.user_id = ? 
                                                                           ORDER BY p.created_at DESC 
                                                                           LIMIT 5";
-                                                        $stmt = $conn->prepare($userRecentQuery);
-                                                        $stmt->bind_param("i", $userId);
+                                                        $stmt = $conn->prepare(
+                                                            $userRecentQuery
+                                                        );
+                                                        $stmt->bind_param(
+                                                            "i",
+                                                            $userId
+                                                        );
                                                         $stmt->execute();
                                                         $userRecentResult = $stmt->get_result();
-                                                        while ($property = $userRecentResult->fetch_assoc()):
-                                                        ?>
+                                                        while (
+                                                            $property = $userRecentResult->fetch_assoc()
+                                                        ): ?>
                                                             <tr>
-                                                                <td><?php echo htmlspecialchars($property['id']); ?></td>
-                                                                <td><?php echo htmlspecialchars($property['title']); ?></td>
+                                                                <td><?php echo htmlspecialchars(
+                                                                    $property[
+                                                                        "id"
+                                                                    ]
+                                                                ); ?></td>
+                                                                <td><?php echo htmlspecialchars(
+                                                                    $property[
+                                                                        "title"
+                                                                    ]
+                                                                ); ?></td>
                                                                 <td>
                                                                     <div>
-                                                                        <strong><?php echo htmlspecialchars($property['owner_name']); ?></strong>
-                                                                        <br><small class="text-muted"><?php echo htmlspecialchars($property['owner_email']); ?></small>
+                                                                        <strong><?php echo htmlspecialchars(
+                                                                            $property[
+                                                                                "owner_name"
+                                                                            ]
+                                                                        ); ?></strong>
+                                                                        <br><small class="text-muted"><?php echo htmlspecialchars(
+                                                                            $property[
+                                                                                "owner_email"
+                                                                            ]
+                                                                        ); ?></small>
                                                                     </div>
                                                                 </td>
-                                                                <td><?php echo htmlspecialchars($property['city']); ?></td>
-                                                                <td><?php echo htmlspecialchars($property['type']); ?></td>
-                                                                <td><strong>PKR <?php echo number_format($property['price']); ?></strong></td>
+                                                                <td><?php echo htmlspecialchars(
+                                                                    $property[
+                                                                        "city"
+                                                                    ]
+                                                                ); ?></td>
+                                                                <td><?php echo htmlspecialchars(
+                                                                    $property[
+                                                                        "type"
+                                                                    ]
+                                                                ); ?></td>
+                                                                <td><strong>PKR <?php echo number_format(
+                                                                    $property[
+                                                                        "price"
+                                                                    ]
+                                                                ); ?></strong></td>
                                                                 <td>
-                                                                    <span class="badge bg-<?php echo $property['status'] === 'active' ? 'success' : ($property['status'] === 'pending' ? 'warning' : 'secondary'); ?>">
-                                                                        <?php echo ucfirst($property['status']); ?>
+                                                                    <span class="badge bg-<?php echo $property[
+                                                                        "status"
+                                                                    ] ===
+                                                                    "active"
+                                                                        ? "success"
+                                                                        : ($property[
+                                                                            "status"
+                                                                        ] ===
+                                                                        "pending"
+                                                                            ? "warning"
+                                                                            : "secondary"); ?>">
+                                                                        <?php echo ucfirst(
+                                                                            $property[
+                                                                                "status"
+                                                                            ]
+                                                                        ); ?>
                                                                     </span>
                                                                 </td>
-                                                                <td><?php echo date('M d, Y', strtotime($property['created_at'])); ?></td>
+                                                                <td><?php echo date(
+                                                                    "M d, Y",
+                                                                    strtotime(
+                                                                        $property[
+                                                                            "created_at"
+                                                                        ]
+                                                                    )
+                                                                ); ?></td>
                                                                 <td>
                                                                     <div class="btn-group" role="group">
                                                                         <button class="btn btn-sm btn-outline-primary" 
-                                                                                onclick="viewProperty(<?php echo $property['id']; ?>)"
+                                                                                onclick="viewProperty(<?php echo $property[
+                                                                                    "id"
+                                                                                ]; ?>)"
                                                                                 title="View Property">
                                                                             <i class="fas fa-eye"></i>
                                                                         </button>
                                                                         <button class="btn btn-sm btn-outline-warning" 
-                                                                                onclick="togglePropertyStatus(<?php echo $property['id']; ?>, '<?php echo $property['status']; ?>')"
-                                                                                title="<?php echo $property['status'] === 'active' ? 'Deactivate' : 'Activate'; ?>">
-                                                                            <i class="fas fa-<?php echo $property['status'] === 'active' ? 'pause' : 'play'; ?>"></i>
+                                                                                onclick="togglePropertyStatus(<?php echo $property[
+                                                                                    "id"
+                                                                                ]; ?>, '<?php echo $property[
+    "status"
+]; ?>')"
+                                                                                title="<?php echo $property[
+                                                                                    "status"
+                                                                                ] ===
+                                                                                "active"
+                                                                                    ? "Deactivate"
+                                                                                    : "Activate"; ?>">
+                                                                            <i class="fas fa-<?php echo $property[
+                                                                                "status"
+                                                                            ] ===
+                                                                            "active"
+                                                                                ? "pause"
+                                                                                : "play"; ?>"></i>
                                                                         </button>
                                                                         <button class="btn btn-sm btn-outline-danger" 
-                                                                                onclick="deleteProperty(<?php echo $property['id']; ?>)"
+                                                                                onclick="deleteProperty(<?php echo $property[
+                                                                                    "id"
+                                                                                ]; ?>)"
                                                                                 title="Delete Property">
                                                                             <i class="fas fa-trash"></i>
                                                                         </button>
                                                                     </div>
                                                                 </td>
                                                             </tr>
-                                                        <?php endwhile; ?>
-                                                        <?php if ($userRecentResult->num_rows === 0): ?>
+                                                        <?php endwhile;
+                                                        ?>
+                                                        <?php if (
+                                                            $userRecentResult->num_rows ===
+                                                            0
+                                                        ): ?>
                                                             <tr>
                                                                 <td colspan="9" class="text-center">No recent properties found.</td>
                                                             </tr>
@@ -855,7 +1040,10 @@ $stmt->close();
                             </div>
                         </div>
                         
-                        <?php if (isset($userRole) && strtolower($userRole) === 'admin'): ?>
+                        <?php if (
+                            isset($userRole) &&
+                            strtolower($userRole) === "admin"
+                        ): ?>
                         <!-- Recent Transactions for Admin -->
                         <div class="row">
                             <div class="col-lg-6 mb-4">
@@ -886,33 +1074,73 @@ $stmt->close();
                                                                              LEFT JOIN users u2 ON p.user_id = u2.id
                                                                              ORDER BY t.created_at DESC 
                                                                              LIMIT 5";
-                                                    $adminTransactionsResult = $conn->query($adminTransactionsQuery);
-                                                    while ($transaction = $adminTransactionsResult->fetch_assoc()):
-                                                    ?>
+                                                    $adminTransactionsResult = $conn->query(
+                                                        $adminTransactionsQuery
+                                                    );
+                                                    while (
+                                                        $transaction = $adminTransactionsResult->fetch_assoc()
+                                                    ): ?>
                                                         <tr>
                                                             <td>
-                                                                <small><?php echo htmlspecialchars($transaction['property_title'] ?: 'N/A'); ?></small>
+                                                                <small><?php echo htmlspecialchars(
+                                                                    $transaction[
+                                                                        "property_title"
+                                                                    ] ?:
+                                                                    "N/A"
+                                                                ); ?></small>
                                                             </td>
                                                             <td>
                                                                 <small>
-                                                                    <strong><?php echo htmlspecialchars($transaction['buyer_name'] ?: 'N/A'); ?></strong>
-                                                                    <br><?php echo htmlspecialchars($transaction['buyer_email'] ?: 'N/A'); ?>
+                                                                    <strong><?php echo htmlspecialchars(
+                                                                        $transaction[
+                                                                            "buyer_name"
+                                                                        ] ?:
+                                                                        "N/A"
+                                                                    ); ?></strong>
+                                                                    <br><?php echo htmlspecialchars(
+                                                                        $transaction[
+                                                                            "buyer_email"
+                                                                        ] ?:
+                                                                        "N/A"
+                                                                    ); ?>
                                                                 </small>
                                                             </td>
                                                             <td>
                                                                 <small>
-                                                                    <strong><?php echo htmlspecialchars($transaction['seller_name'] ?: 'N/A'); ?></strong>
-                                                                    <br><?php echo htmlspecialchars($transaction['seller_email'] ?: 'N/A'); ?>
+                                                                    <strong><?php echo htmlspecialchars(
+                                                                        $transaction[
+                                                                            "seller_name"
+                                                                        ] ?:
+                                                                        "N/A"
+                                                                    ); ?></strong>
+                                                                    <br><?php echo htmlspecialchars(
+                                                                        $transaction[
+                                                                            "seller_email"
+                                                                        ] ?:
+                                                                        "N/A"
+                                                                    ); ?>
                                                                 </small>
                                                             </td>
                                                             <td>
-                                                                <strong class="text-success">PKR <?php echo number_format($transaction['amount']); ?></strong>
+                                                                <strong class="text-success">PKR <?php echo number_format(
+                                                                    $transaction[
+                                                                        "amount"
+                                                                    ]
+                                                                ); ?></strong>
                                                             </td>
                                                             <td>
-                                                                <small><?php echo date('M d', strtotime($transaction['created_at'])); ?></small>
+                                                                <small><?php echo date(
+                                                                    "M d",
+                                                                    strtotime(
+                                                                        $transaction[
+                                                                            "created_at"
+                                                                        ]
+                                                                    )
+                                                                ); ?></small>
                                                             </td>
                                                         </tr>
-                                                    <?php endwhile; ?>
+                                                    <?php endwhile;
+                                                    ?>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -937,22 +1165,42 @@ $stmt->close();
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                    $recentUsersQuery = "SELECT name, email, created_at FROM users WHERE role != 'admin' ORDER BY created_at DESC LIMIT 5";
-                                                    $recentUsersResult = $conn->query($recentUsersQuery);
-                                                    while ($user = $recentUsersResult->fetch_assoc()):
-                                                    ?>
+                                                    $recentUsersQuery =
+                                                        "SELECT name, email, created_at FROM users WHERE role != 'admin' ORDER BY created_at DESC LIMIT 5";
+                                                    $recentUsersResult = $conn->query(
+                                                        $recentUsersQuery
+                                                    );
+                                                    while (
+                                                        $user = $recentUsersResult->fetch_assoc()
+                                                    ): ?>
                                                         <tr>
                                                             <td>
-                                                                <small><?php echo htmlspecialchars($user['name']); ?></small>
+                                                                <small><?php echo htmlspecialchars(
+                                                                    $user[
+                                                                        "name"
+                                                                    ]
+                                                                ); ?></small>
                                                             </td>
                                                             <td>
-                                                                <small><?php echo htmlspecialchars($user['email']); ?></small>
+                                                                <small><?php echo htmlspecialchars(
+                                                                    $user[
+                                                                        "email"
+                                                                    ]
+                                                                ); ?></small>
                                                             </td>
                                                             <td>
-                                                                <small><?php echo date('M d', strtotime($user['created_at'])); ?></small>
+                                                                <small><?php echo date(
+                                                                    "M d",
+                                                                    strtotime(
+                                                                        $user[
+                                                                            "created_at"
+                                                                        ]
+                                                                    )
+                                                                ); ?></small>
                                                             </td>
                                                         </tr>
-                                                    <?php endwhile; ?>
+                                                    <?php endwhile;
+                                                    ?>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -981,14 +1229,29 @@ $stmt->close();
                                         </thead>
                                         <tbody>
                                             <?php if (!empty($transactions)): ?>
-                                                <?php foreach ($transactions as $t): ?>
+                                                <?php foreach (
+                                                    $transactions
+                                                    as $t
+                                                ): ?>
                                                     <tr>
-                                                        <td><?php echo $t['id']; ?></td>
-                                                        <td><?php echo htmlspecialchars($t['property_title']); ?></td>
-                                                        <td><?php echo htmlspecialchars($t['buyer_name']); ?></td>
-                                                        <td><?php echo htmlspecialchars($t['seller_name']); ?></td>
-                                                        <td>PKR <?php echo number_format($t['amount']); ?></td>
-                                                        <td><?php echo $t['created_at']; ?></td>
+                                                        <td><?php echo $t[
+                                                            "id"
+                                                        ]; ?></td>
+                                                        <td><?php echo htmlspecialchars(
+                                                            $t["property_title"]
+                                                        ); ?></td>
+                                                        <td><?php echo htmlspecialchars(
+                                                            $t["buyer_name"]
+                                                        ); ?></td>
+                                                        <td><?php echo htmlspecialchars(
+                                                            $t["seller_name"]
+                                                        ); ?></td>
+                                                        <td>PKR <?php echo number_format(
+                                                            $t["amount"]
+                                                        ); ?></td>
+                                                        <td><?php echo $t[
+                                                            "created_at"
+                                                        ]; ?></td>
                                                     </tr>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
@@ -1015,14 +1278,20 @@ $stmt->close();
                                         <div class="card-body text-center">
 
                                             <div class="profile-avatar-wrapper mb-3">
-                                                <img src="<?php echo $picture ? '../' . $picture : '../images/user.png' ?>" alt="Profile Avatar" class="profile-avatar" title="Upload your profile picture">
+                                                <img src="<?php echo $picture
+                                                    ? "../" . $picture
+                                                    : "../images/user.png"; ?>" alt="Profile Avatar" class="profile-avatar" title="Upload your profile picture">
                                                 <input type="file" name="picture" accept="image/*" class="form-control mb-3" id="profilePictureInput" style="display: none;">
                                                 <label for="profilePictureInput" class="btn btn-sm btn-primary avatar-upload" id="uploadPictureBtn" style="cursor: pointer;">
                                                     <i class="fas fa-camera"></i>
                                                 </label>
                                             </div>
-                                            <h5 class="mt-5" id="profileName"><?php echo htmlspecialchars($userName); ?></h5>
-                                            <p class="text-muted" id="profileRole"><?php echo ucfirst(htmlspecialchars($userRole)); ?></p>
+                                            <h5 class="mt-5" id="profileName"><?php echo htmlspecialchars(
+                                                $userName
+                                            ); ?></h5>
+                                            <p class="text-muted" id="profileRole"><?php echo ucfirst(
+                                                htmlspecialchars($userRole)
+                                            ); ?></p>
                                         </div>
                                     </div>
                                 </div>
@@ -1034,49 +1303,70 @@ $stmt->close();
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label">Full Name <span class="text-danger">*</span></label>
-                                                    <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars($userName); ?>" 
+                                                    <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars(
+                                                        $userName
+                                                    ); ?>" 
                                                            pattern="^[A-Za-z\s]+$" title="Name should only contain letters and spaces." required>
                                                     <div class="invalid-feedback">Please enter a valid name with only letters and spaces.</div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Email <span class="text-danger">*</span></label>
-                                                    <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($userEmail); ?>" readonly>
+                                                    <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars(
+                                                        $userEmail
+                                                    ); ?>" readonly>
                                                     <div class="form-text">Email cannot be changed for security reasons.</div>
                                                 </div>
                                             </div>
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label">Phone <span class="text-danger">*</span></label>
-                                                    <input type="text" name="phone" class="form-control" value="<?php echo htmlspecialchars($userPhone); ?>" 
+                                                    <input type="text" name="phone" class="form-control" value="<?php echo htmlspecialchars(
+                                                        $userPhone
+                                                    ); ?>" 
                                                            placeholder="03XX-XXXXXXX" pattern="^[0-9]{4}-[0-9]{7}$" title="Please enter phone number in format: 03XX-XXXXXXX" required>
                                                     <div class="invalid-feedback">Please enter a valid phone number in format: 03XX-XXXXXXX</div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Location <span class="text-danger">*</span></label>
-                                                    <input type="text" name="location" class="form-control" value="<?php echo htmlspecialchars($userLocation); ?>" 
-                                                           placeholder="City, Country" pattern="^[A-Za-z\s,.-]+$" title="Location should only contain letters, spaces, commas, dots, and hyphens." required>
+                                                    <input type="text" name="location" class="form-control" value="<?php echo htmlspecialchars(
+                                                        $userLocation
+                                                    ); ?>" 
+                                                           placeholder="City, Country" pattern="^[A-Za-z\s,.\-]+$" title="Location should only contain letters, spaces, commas, dots, and hyphens." required>
                                                     <div class="invalid-feedback">Please enter a valid location with only letters, spaces, commas, dots, and hyphens.</div>
                                                 </div>
                                             </div>
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label">CNIC <span class="text-danger">*</span></label>
-                                                    <input type="text" name="cnic" class="form-control" value="<?php echo htmlspecialchars($userCNIC ?? ''); ?>" 
+                                                    <input type="text" name="cnic" class="form-control" value="<?php echo htmlspecialchars(
+                                                        $userCNIC ?? ""
+                                                    ); ?>" 
                                                            placeholder="12345-1234567-1" pattern="^[0-9]{5}-[0-9]{7}-[0-9]{1}$" title="Please enter CNIC in format: XXXXX-XXXXXXX-X" required>
                                                     <div class="invalid-feedback">Please enter a valid CNIC in format: XXXXX-XXXXXXX-X</div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Account Type</label>
-                                                    <input type="text" class="form-control" value="<?php echo ucfirst(htmlspecialchars($userRole ?? 'user')); ?>" readonly>
+                                                    <input type="text" class="form-control" value="<?php echo ucfirst(
+                                                        htmlspecialchars(
+                                                            $userRole ?? "user"
+                                                        )
+                                                    ); ?>" readonly>
                                                     <div class="form-text">Account type cannot be changed.</div>
                                                 </div>
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label">Bio</label>
-                                                <textarea name="bio" class="form-control" rows="4" maxlength="500" placeholder="Write a short bio about yourself (max 500 characters)"><?php echo htmlspecialchars($userBio); ?></textarea>
+                                                <textarea name="bio" class="form-control" rows="4" maxlength="500" placeholder="Write a short bio about yourself (max 500 characters)"><?php echo htmlspecialchars(
+                                                    $userBio
+                                                ); ?></textarea>
                                                 <div class="form-text">Maximum 500 characters allowed.</div>
                                             </div>
-                                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            
+                                            <div class="text-end">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-save me-2"></i>Save Changes
+                                                </button>
+                                            </div>
                         </form>
                     </div>
             </div>
@@ -1141,15 +1431,7 @@ $stmt->close();
                                 
                                 <!-- Inline test for password toggles and change password button -->
                                 <script>
-                                    console.log('Inline script running');
-                                    console.log('Toggle buttons found:', {
-                                        current: document.getElementById('toggleCurrentPassword'),
-                                        new: document.getElementById('toggleNewPassword'),
-                                        confirm: document.getElementById('toggleConfirmPassword')
-                                    });
-                                    console.log('Change password button found:', document.getElementById('changePasswordBtn'));
-                                    
-                                    // Simple inline toggle test
+                                    document.getElementById('changePasswordBtn'));
                                     document.addEventListener('DOMContentLoaded', function() {
                                         const toggles = ['toggleCurrentPassword', 'toggleNewPassword', 'toggleConfirmPassword'];
                                         const inputs = ['currentPassword', 'newPassword', 'confirmPassword'];
@@ -1159,10 +1441,8 @@ $stmt->close();
                                             const input = document.getElementById(inputs[index]);
                                             
                                             if (toggle && input) {
-                                                console.log('Setting up inline toggle for:', toggleId);
                                                 toggle.addEventListener('click', function(e) {
                                                     e.preventDefault();
-                                                    console.log('Inline toggle clicked:', toggleId);
                                                     
                                                     if (input.type === 'password') {
                                                         input.type = 'text';
@@ -1175,44 +1455,42 @@ $stmt->close();
                                             }
                                         });
                                         
-                                        // Test change password button
                                         const changePasswordBtn = document.getElementById('changePasswordBtn');
                                         if (changePasswordBtn) {
-                                            console.log('Setting up inline change password button handler');
                                             changePasswordBtn.addEventListener('click', function(e) {
                                                 e.preventDefault();
-                                                console.log('Inline change password button clicked');
                                                 
-                                                // Get form values
                                                 const currentPassword = document.getElementById('currentPassword').value;
                                                 const newPassword = document.getElementById('newPassword').value;
                                                 const confirmPassword = document.getElementById('confirmPassword').value;
                                                 
-                                                console.log('Inline form values:', {
-                                                    currentPassword: currentPassword ? 'filled' : 'empty',
-                                                    newPassword: newPassword ? 'filled' : 'empty',
-                                                    confirmPassword: confirmPassword ? 'filled' : 'empty'
-                                                });
-                                                
-                                                // Simple validation
                                                 if (!currentPassword || !newPassword || !confirmPassword) {
-                                                    alert('Please fill in all fields.');
+                                                    iziToast.error({
+                                                        title: 'Error',
+                                                        message: 'Please fill in all fields.',
+                                                        position: 'topRight'
+                                                    });
                                                     return;
                                                 }
                                                 
                                                 if (newPassword !== confirmPassword) {
-                                                    alert('New password and confirm password do not match.');
+                                                    iziToast.error({
+                                                        title: 'Error',
+                                                        message: 'New password and confirm password do not match.',
+                                                        position: 'topRight'
+                                                    });
                                                     return;
                                                 }
                                                 
                                                 if (newPassword.length < 6) {
-                                                    alert('New password must be at least 6 characters long.');
+                                                    iziToast.error({
+                                                        title: 'Error',
+                                                        message: 'New password must be at least 6 characters long.',
+                                                        position: 'topRight'
+                                                    });
                                                     return;
                                                 }
                                                 
-                                                console.log('Inline: Sending AJAX request');
-                                                
-                                                // Use fetch for AJAX request
                                                 fetch('../backend/change-password.php', {
                                                     method: 'POST',
                                                     headers: {
@@ -1226,17 +1504,27 @@ $stmt->close();
                                                 })
                                                 .then(response => response.json())
                                                 .then(data => {
-                                                    console.log('Inline response:', data);
                                                     if (data.success) {
-                                                        alert('Password changed successfully!');
+                                                        iziToast.success({
+                                                            title: 'Success',
+                                                            message: 'Password changed successfully!',
+                                                            position: 'topRight'
+                                                        });
                                                         document.getElementById('changePasswordForm').reset();
                                                     } else {
-                                                        alert(data.message || 'Failed to change password.');
+                                                        iziToast.error({
+                                                            title: 'Error',
+                                                            message: data.message || 'Failed to change password.',
+                                                            position: 'topRight'
+                                                        });
                                                     }
                                                 })
                                                 .catch(error => {
-                                                    console.error('Inline error:', error);
-                                                    alert('An error occurred while changing password.');
+                                                    iziToast.error({
+                                                        title: 'Error',
+                                                        message: 'An error occurred while changing password.',
+                                                        position: 'topRight'
+                                                    });
                                                 });
                                             });
                                         }
@@ -1251,7 +1539,7 @@ $stmt->close();
     </section>
 
     <!-- Properties Section -->
-    <?php if (!isset($userRole) || strtolower($userRole) !== 'admin'): ?>
+    <?php if (!isset($userRole) || strtolower($userRole) !== "admin"): ?>
     <section id="properties" class="dashboard-section">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -1268,7 +1556,7 @@ $stmt->close();
     <?php endif; ?>
 
     <!-- Saved Properties Section -->
-    <?php if (!isset($userRole) || strtolower($userRole) !== 'admin'): ?>
+    <?php if (!isset($userRole) || strtolower($userRole) !== "admin"): ?>
     <section id="saved" class="dashboard-section">
         <div class="container-fluid">
             <h2 class="section-title mb-4">Saved Properties</h2>
@@ -1312,7 +1600,7 @@ $stmt->close();
     </section>
 
     <!-- Rewards Section -->
-    <?php if (!isset($userRole) || strtolower($userRole) !== 'admin'): ?>
+    <?php if (!isset($userRole) || strtolower($userRole) !== "admin"): ?>
     <section id="rewards" class="dashboard-section">
         <div class="container-fluid">
             <h2 class="section-title mb-4">Referral Rewards</h2>
@@ -1371,7 +1659,7 @@ $stmt->close();
         </div>
     </section>
     <?php endif; ?>
-    <?php if (isset($userRole) && strtolower($userRole) === 'admin'): ?>
+    <?php if (isset($userRole) && strtolower($userRole) === "admin"): ?>
 <!-- All Properties Section (Admin Only) -->
 <section id="all-properties" class="dashboard-section">
     <div class="container-fluid">
@@ -1385,30 +1673,36 @@ $stmt->close();
             $activeProperties = 0;
             $pendingProperties = 0;
             $totalOwners = 0;
-            
+
             // Total Properties
             $stmt = $conn->prepare("SELECT COUNT(*) FROM properties");
             $stmt->execute();
             $stmt->bind_result($totalProperties);
             $stmt->fetch();
             $stmt->close();
-            
+
             // Active Properties
-            $stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE status = 'active'");
+            $stmt = $conn->prepare(
+                "SELECT COUNT(*) FROM properties WHERE status = 'active'"
+            );
             $stmt->execute();
             $stmt->bind_result($activeProperties);
             $stmt->fetch();
             $stmt->close();
-            
+
             // Pending Properties
-            $stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE listing = 'pending'");
+            $stmt = $conn->prepare(
+                "SELECT COUNT(*) FROM properties WHERE listing = 'pending'"
+            );
             $stmt->execute();
             $stmt->bind_result($pendingProperties);
             $stmt->fetch();
             $stmt->close();
-            
+
             // Total Property Owners
-            $stmt = $conn->prepare("SELECT COUNT(DISTINCT user_id) FROM properties");
+            $stmt = $conn->prepare(
+                "SELECT COUNT(DISTINCT user_id) FROM properties"
+            );
             $stmt->execute();
             $stmt->bind_result($totalOwners);
             $stmt->fetch();
@@ -1552,53 +1846,104 @@ $stmt->close();
                                              LEFT JOIN users u ON p.user_id = u.id 
                                              ORDER BY p.created_at DESC";
                             $propertiesResult = $conn->query($propertiesQuery);
-                            while ($property = $propertiesResult->fetch_assoc()):
-                            ?>
+                            while (
+                                $property = $propertiesResult->fetch_assoc()
+                            ): ?>
                             <tr class="property-row" 
-                                data-id="<?php echo $property['id']; ?>"
-                                data-status="<?php echo htmlspecialchars($property['status']); ?>"
-                                data-city="<?php echo htmlspecialchars($property['city']); ?>"
-                                data-type="<?php echo htmlspecialchars($property['type']); ?>"
-                                data-price="<?php echo $property['price']; ?>">
-                                <td><?php echo htmlspecialchars($property['id']); ?></td>
-                                <td><?php echo htmlspecialchars($property['title']); ?></td>
+                                data-id="<?php echo $property["id"]; ?>"
+                                data-status="<?php echo htmlspecialchars(
+                                    $property["status"]
+                                ); ?>"
+                                data-city="<?php echo htmlspecialchars(
+                                    $property["city"]
+                                ); ?>"
+                                data-type="<?php echo htmlspecialchars(
+                                    $property["type"]
+                                ); ?>"
+                                data-price="<?php echo $property["price"]; ?>">
+                                <td><?php echo htmlspecialchars(
+                                    $property["id"]
+                                ); ?></td>
+                                <td><?php echo htmlspecialchars(
+                                    $property["title"]
+                                ); ?></td>
                                 <td>
                                     <div>
-                                        <strong><?php echo htmlspecialchars($property['owner_name']); ?></strong>
-                                        <br><small class="text-muted"><?php echo htmlspecialchars($property['owner_email']); ?></small>
+                                        <strong><?php echo htmlspecialchars(
+                                            $property["owner_name"]
+                                        ); ?></strong>
+                                        <br><small class="text-muted"><?php echo htmlspecialchars(
+                                            $property["owner_email"]
+                                        ); ?></small>
                                     </div>
                                 </td>
-                                <td><?php echo htmlspecialchars($property['city']); ?></td>
-                                <td><?php echo htmlspecialchars($property['city']); ?></td>
-                                <td><?php echo htmlspecialchars($property['type']); ?></td>
-                                <td><strong>PKR <?php echo number_format($property['price']); ?></strong></td>
+                                <td><?php echo htmlspecialchars(
+                                    $property["city"]
+                                ); ?></td>
+                                <td><?php echo htmlspecialchars(
+                                    $property["city"]
+                                ); ?></td>
+                                <td><?php echo htmlspecialchars(
+                                    $property["type"]
+                                ); ?></td>
+                                <td><strong>PKR <?php echo number_format(
+                                    $property["price"]
+                                ); ?></strong></td>
                                 <td>
-                                    <span class="badge bg-<?php echo $property['status'] === 'active' ? 'success' : ($property['status'] === 'pending' ? 'warning' : 'secondary'); ?>">
-                                        <?php echo ucfirst($property['status']); ?>
+                                    <span class="badge bg-<?php echo $property[
+                                        "status"
+                                    ] === "active"
+                                        ? "success"
+                                        : ($property["status"] === "pending"
+                                            ? "warning"
+                                            : "secondary"); ?>">
+                                        <?php echo ucfirst(
+                                            $property["status"]
+                                        ); ?>
                                     </span>
                                 </td>
-                                <td><?php echo date('M d, Y', strtotime($property['created_at'])); ?></td>
+                                <td><?php echo date(
+                                    "M d, Y",
+                                    strtotime($property["created_at"])
+                                ); ?></td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <button class="btn btn-sm btn-outline-primary" 
-                                                onclick="viewProperty(<?php echo $property['id']; ?>)"
+                                                onclick="viewProperty(<?php echo $property[
+                                                    "id"
+                                                ]; ?>)"
                                                 title="View Property">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         <!-- <button class="btn btn-sm btn-outline-warning" 
-                                                onclick="togglePropertyStatus(<?php echo $property['id']; ?>, '<?php echo $property['status']; ?>')"
-                                                title="<?php echo $property['status'] === 'active' ? 'Deactivate' : 'Activate'; ?>">
-                                            <i class="fas fa-<?php echo $property['status'] === 'active' ? 'pause' : 'play'; ?>"></i>
+                                                onclick="togglePropertyStatus(<?php echo $property[
+                                                    "id"
+                                                ]; ?>, '<?php echo $property[
+    "status"
+]; ?>')"
+                                                title="<?php echo $property[
+                                                    "status"
+                                                ] === "active"
+                                                    ? "Deactivate"
+                                                    : "Activate"; ?>">
+                                            <i class="fas fa-<?php echo $property[
+                                                "status"
+                                            ] === "active"
+                                                ? "pause"
+                                                : "play"; ?>"></i>
                                         </button> -->
                                         <button class="btn btn-sm btn-outline-danger" 
-                                                onclick="deleteProperty(<?php echo $property['id']; ?>)"
+                                                onclick="deleteProperty(<?php echo $property[
+                                                    "id"
+                                                ]; ?>)"
                                                 title="Delete Property">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
-                            <?php endwhile; ?>
+                            <?php endwhile;
+                            ?>
                         </tbody>
                     </table>
                 </div>
@@ -1620,30 +1965,36 @@ $stmt->close();
             $activeUsers = 0;
             $adminUsers = 0;
             $regularUsers = 0;
-            
+
             // Total Users
             $stmt = $conn->prepare("SELECT COUNT(*) FROM users");
             $stmt->execute();
             $stmt->bind_result($totalUsers);
             $stmt->fetch();
             $stmt->close();
-            
+
             // Admin Users
-            $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE LOWER(role) = 'admin'");
+            $stmt = $conn->prepare(
+                "SELECT COUNT(*) FROM users WHERE LOWER(role) = 'admin'"
+            );
             $stmt->execute();
             $stmt->bind_result($adminUsers);
             $stmt->fetch();
             $stmt->close();
-            
+
             // Regular Users
-            $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE LOWER(role) != 'admin'");
+            $stmt = $conn->prepare(
+                "SELECT COUNT(*) FROM users WHERE LOWER(role) != 'admin'"
+            );
             $stmt->execute();
             $stmt->bind_result($regularUsers);
             $stmt->fetch();
             $stmt->close();
-            
+
             // Active Users (users with properties)
-            $stmt = $conn->prepare("SELECT COUNT(DISTINCT user_id) FROM properties");
+            $stmt = $conn->prepare(
+                "SELECT COUNT(DISTINCT user_id) FROM properties"
+            );
             $stmt->execute();
             $stmt->bind_result($activeUsers);
             $stmt->fetch();
@@ -1752,50 +2103,87 @@ $stmt->close();
                                           ORDER BY u.created_at DESC";
                             $usersResult = $conn->query($usersQuery);
                             while ($user = $usersResult->fetch_assoc()):
-                                $isActive = $user['property_count'] > 0;
-                            ?>
+                                $isActive = $user["property_count"] > 0; ?>
                             <tr class="user-row" 
-                                data-id="<?php echo htmlspecialchars($user['id']); ?>"
-                                data-role="<?php echo htmlspecialchars($user['role']); ?>"
-                                data-status="<?php echo $isActive ? 'active' : 'inactive'; ?>">
-                                <td><?php echo htmlspecialchars($user['id']); ?></td>
+                                data-id="<?php echo htmlspecialchars(
+                                    $user["id"]
+                                ); ?>"
+                                data-role="<?php echo htmlspecialchars(
+                                    $user["role"]
+                                ); ?>"
+                                data-status="<?php echo $isActive
+                                    ? "active"
+                                    : "inactive"; ?>">
+                                <td><?php echo htmlspecialchars(
+                                    $user["id"]
+                                ); ?></td>
                                 <td>
                                     <div>
-                                        <strong><?php echo htmlspecialchars($user['name']); ?></strong>
-                                        <?php if ($user['cnic']): ?>
-                                            <br><small class="text-muted">CNIC: <?php echo htmlspecialchars($user['cnic']); ?></small>
+                                        <strong><?php echo htmlspecialchars(
+                                            $user["name"]
+                                        ); ?></strong>
+                                        <?php if ($user["cnic"]): ?>
+                                            <br><small class="text-muted">CNIC: <?php echo htmlspecialchars(
+                                                $user["cnic"]
+                                            ); ?></small>
                                         <?php endif; ?>
                                     </div>
                                 </td>
-                                <td><?php echo htmlspecialchars($user['email']); ?></td>
-                                <td><?php echo htmlspecialchars($user['phone'] ?: 'N/A'); ?></td>
+                                <td><?php echo htmlspecialchars(
+                                    $user["email"]
+                                ); ?></td>
+                                <td><?php echo htmlspecialchars(
+                                    $user["phone"] ?: "N/A"
+                                ); ?></td>
                                 <td>
-                                    <span class="badge bg-<?php echo strtolower($user['role']) === 'admin' ? 'danger' : 'primary'; ?>">
-                                        <?php echo ucfirst($user['role']); ?>
+                                    <span class="badge bg-<?php echo strtolower(
+                                        $user["role"]
+                                    ) === "admin"
+                                        ? "danger"
+                                        : "primary"; ?>">
+                                        <?php echo ucfirst($user["role"]); ?>
                                     </span>
                                 </td>
                                 <td>
-                                    <strong><?php echo $user['property_count']; ?></strong>
-                                    <?php if ($user['last_property_date']): ?>
-                                        <br><small class="text-muted">Last: <?php echo date('M d, Y', strtotime($user['last_property_date'])); ?></small>
+                                    <strong><?php echo $user[
+                                        "property_count"
+                                    ]; ?></strong>
+                                    <?php if ($user["last_property_date"]): ?>
+                                        <br><small class="text-muted">Last: <?php echo date(
+                                            "M d, Y",
+                                            strtotime(
+                                                $user["last_property_date"]
+                                            )
+                                        ); ?></small>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php echo date('M d, Y', strtotime($user['created_at'])); ?></td>
+                                <td><?php echo date(
+                                    "M d, Y",
+                                    strtotime($user["created_at"])
+                                ); ?></td>
                                 <td>
-                                    <span class="badge bg-<?php echo $isActive ? 'success' : 'secondary'; ?>">
-                                        <?php echo $isActive ? 'Active' : 'Inactive'; ?>
+                                    <span class="badge bg-<?php echo $isActive
+                                        ? "success"
+                                        : "secondary"; ?>">
+                                        <?php echo $isActive
+                                            ? "Active"
+                                            : "Inactive"; ?>
                                     </span>
                                 </td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <!-- <button class="btn btn-sm btn-outline-primary" 
-                                                onclick="viewUserDetails(<?php echo $user['id']; ?>)"
+                                                onclick="viewUserDetails(<?php echo $user[
+                                                    "id"
+                                                ]; ?>)"
                                                 title="View User Details">
                                             <i class="fas fa-eye"></i>
                                         </button> -->
-                                        <?php if ($user['role'] !== 'admin'): ?>
+                                        <?php if ($user["role"] !== "admin"): ?>
                                         <button class="btn btn-sm btn-outline-danger" 
-                                                onclick="deleteUser(<?php echo $user['id']; ?>)"
+                                                onclick="deleteUser(<?php echo $user[
+                                                    "id"
+                                                ]; ?>)"
                                                 title="Delete User">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -1805,7 +2193,9 @@ $stmt->close();
                                     </div>
                                 </td>
                             </tr>
-                            <?php endwhile; ?>
+                            <?php
+                            endwhile;
+                            ?>
                         </tbody>
                     </table>
                 </div>
@@ -1827,30 +2217,32 @@ $stmt->close();
             $totalRevenue = 0;
             $avgTransactionAmount = 0;
             $recentTransactions = 0;
-            
+
             // Total Transactions
             $stmt = $conn->prepare("SELECT COUNT(*) FROM transactions");
             $stmt->execute();
             $stmt->bind_result($totalTransactions);
             $stmt->fetch();
             $stmt->close();
-            
+
             // Total Revenue
             $stmt = $conn->prepare("SELECT SUM(amount) FROM transactions");
             $stmt->execute();
             $stmt->bind_result($totalRevenue);
             $stmt->fetch();
             $stmt->close();
-            
+
             // Average Transaction Amount
             $stmt = $conn->prepare("SELECT AVG(amount) FROM transactions");
             $stmt->execute();
             $stmt->bind_result($avgTransactionAmount);
             $stmt->fetch();
             $stmt->close();
-            
+
             // Recent Transactions (last 30 days)
-            $stmt = $conn->prepare("SELECT COUNT(*) FROM transactions WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+            $stmt = $conn->prepare(
+                "SELECT COUNT(*) FROM transactions WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)"
+            );
             $stmt->execute();
             $stmt->bind_result($recentTransactions);
             $stmt->fetch();
@@ -1874,7 +2266,9 @@ $stmt->close();
             <div >
                 <div class="stats-card text-center">
                     <i class="fas fa-chart-line fa-2x mb-2"></i>
-                    <h5 class="text-wrap">PKR <?php echo number_format($avgTransactionAmount); ?></h5>
+                    <h5 class="text-wrap">PKR <?php echo number_format(
+                        $avgTransactionAmount
+                    ); ?></h5>
                     <p class="mb-0">Avg. Transaction</p>
                 </div>
             </div>
@@ -1961,54 +2355,89 @@ $stmt->close();
                                                 LEFT JOIN users u1 ON t.buyer_id = u1.id
                                                 LEFT JOIN users u2 ON p.user_id = u2.id
                                                 ORDER BY t.created_at DESC";
-                            $transactionsResult = $conn->query($transactionsQuery);
-                            while ($transaction = $transactionsResult->fetch_assoc()):
-                            ?>
+                            $transactionsResult = $conn->query(
+                                $transactionsQuery
+                            );
+                            while (
+                                $transaction = $transactionsResult->fetch_assoc()
+                            ): ?>
                             <tr class="transaction-row" 
-                                data-amount="<?php echo $transaction['amount']; ?>"
-                                data-date="<?php echo $transaction['created_at']; ?>">
-                                <td><?php echo htmlspecialchars($transaction['id']); ?></td>
+                                data-amount="<?php echo $transaction[
+                                    "amount"
+                                ]; ?>"
+                                data-date="<?php echo $transaction[
+                                    "created_at"
+                                ]; ?>">
+                                <td><?php echo htmlspecialchars(
+                                    $transaction["id"]
+                                ); ?></td>
                                 <td>
                                     <div>
-                                        <strong><?php echo htmlspecialchars($transaction['property_title'] ?: 'N/A'); ?></strong>
-                                        <?php if ($transaction['property_id']): ?>
-                                            <br><small class="text-muted">ID: <?php echo htmlspecialchars($transaction['property_id']); ?></small>
+                                        <strong><?php echo htmlspecialchars(
+                                            $transaction["property_title"] ?:
+                                            "N/A"
+                                        ); ?></strong>
+                                        <?php if (
+                                            $transaction["property_id"]
+                                        ): ?>
+                                            <br><small class="text-muted">ID: <?php echo htmlspecialchars(
+                                                $transaction["property_id"]
+                                            ); ?></small>
                                         <?php endif; ?>
                                     </div>
                                 </td>
                                 <td>
                                     <div>
-                                        <strong><?php echo htmlspecialchars($transaction['buyer_name'] ?: 'N/A'); ?></strong>
-                                        <br><small class="text-muted"><?php echo htmlspecialchars($transaction['buyer_email'] ?: 'N/A'); ?></small>
+                                        <strong><?php echo htmlspecialchars(
+                                            $transaction["buyer_name"] ?: "N/A"
+                                        ); ?></strong>
+                                        <br><small class="text-muted"><?php echo htmlspecialchars(
+                                            $transaction["buyer_email"] ?: "N/A"
+                                        ); ?></small>
                                     </div>
                                 </td>
                                 <td>
                                     <div>
-                                        <strong><?php echo htmlspecialchars($transaction['seller_name'] ?: 'N/A'); ?></strong>
-                                        <br><small class="text-muted"><?php echo htmlspecialchars($transaction['seller_email'] ?: 'N/A'); ?></small>
+                                        <strong><?php echo htmlspecialchars(
+                                            $transaction["seller_name"] ?: "N/A"
+                                        ); ?></strong>
+                                        <br><small class="text-muted"><?php echo htmlspecialchars(
+                                            $transaction["seller_email"] ?:
+                                            "N/A"
+                                        ); ?></small>
                                     </div>
                                 </td>
-                                <td><strong class="text-success">PKR <?php echo number_format($transaction['amount']); ?></strong></td>
-                                <td><?php echo date('M d, Y H:i', strtotime($transaction['created_at'])); ?></td>
+                                <td><strong class="text-success">PKR <?php echo number_format(
+                                    $transaction["amount"]
+                                ); ?></strong></td>
+                                <td><?php echo date(
+                                    "M d, Y H:i",
+                                    strtotime($transaction["created_at"])
+                                ); ?></td>
                                 <td>
                                     <span class="badge bg-success">Completed</span>
                                 </td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <!-- <button class="btn btn-sm btn-outline-primary" 
-                                                onclick="viewTransactionDetails(<?php echo $transaction['id']; ?>)"
+                                                onclick="viewTransactionDetails(<?php echo $transaction[
+                                                    "id"
+                                                ]; ?>)"
                                                 title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </button> -->
                                         <button class="btn btn-sm btn-outline-info" 
-                                                onclick="viewPropertyDetails(<?php echo $transaction['property_id']; ?>)"
+                                                onclick="viewPropertyDetails(<?php echo $transaction[
+                                                    "property_id"
+                                                ]; ?>)"
                                                 title="View Property">
                                             <i class="fas fa-building"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
-                            <?php endwhile; ?>
+                            <?php endwhile;
+                            ?>
                         </tbody>
                     </table>
                 </div>
@@ -2043,24 +2472,39 @@ $stmt->close();
                                   LEFT JOIN users u ON r.user_id = u.id
                                   ORDER BY r.created_at DESC";
                         $result = $conn->query($query);
-                        while($row = $result->fetch_assoc()): ?>
-                            <tr id="req-<?php echo $row['id']; ?>">
-                                <td><?php echo $row['id']; ?></td>
-                                <td><?php echo htmlspecialchars($row['property_title']); ?></td>
-                                <td><?php echo htmlspecialchars($row['user_name'] ?? 'N/A'); ?></td>
-                                <td><?php echo htmlspecialchars($row['email']); ?></td>
-                                <td class="status-<?php echo $row['status']; ?>"><?php echo ucfirst($row['status']); ?></td>
-                                <td><?php echo $row['created_at']; ?></td>
+                        while ($row = $result->fetch_assoc()): ?>
+                            <tr id="req-<?php echo $row["id"]; ?>">
+                                <td><?php echo $row["id"]; ?></td>
+                                <td><?php echo htmlspecialchars(
+                                    $row["property_title"]
+                                ); ?></td>
+                                <td><?php echo htmlspecialchars(
+                                    $row["user_name"] ?? "N/A"
+                                ); ?></td>
+                                <td><?php echo htmlspecialchars(
+                                    $row["email"]
+                                ); ?></td>
+                                <td class="status-<?php echo $row[
+                                    "status"
+                                ]; ?>"><?php echo ucfirst(
+    $row["status"]
+); ?></td>
+                                <td><?php echo $row["created_at"]; ?></td>
                                 <td>
-                                    <?php if($row['status'] === 'pending'): ?>
-                                        <button class="btn btn-success btn-sm me-1" onclick="handleBuyRequest(<?php echo $row['id']; ?>, 'approved')">Approve</button>
-                                        <button class="btn btn-danger btn-sm" onclick="handleBuyRequest(<?php echo $row['id']; ?>, 'rejected')">Reject</button>
+                                    <?php if ($row["status"] === "pending"): ?>
+                                        <button class="btn btn-success btn-sm me-1" onclick="handleBuyRequest(<?php echo $row[
+                                            "id"
+                                        ]; ?>, 'approved')">Approve</button>
+                                        <button class="btn btn-danger btn-sm" onclick="handleBuyRequest(<?php echo $row[
+                                            "id"
+                                        ]; ?>, 'rejected')">Reject</button>
                                     <?php else: ?>
                                         <span>-</span>
                                     <?php endif; ?>
                                 </td>
                             </tr>
-                        <?php endwhile; ?>
+                        <?php endwhile;
+                        ?>
                         </tbody>
                     </table>
                 </div>
@@ -2077,40 +2521,48 @@ $stmt->close();
         <!-- Stats Cards -->
         <div class="row mb-4">
         <?php
-            // Fetch approval stats
-            $pendingApprovals = 0;
-            $approvedToday = 0;
-            $rejectedToday = 0;
-            $totalApproved = 0;
-            
-            // Pending Approvals
-            $stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE listing = 'pending'");
-            $stmt->execute();
-            $stmt->bind_result($pendingApprovals);
-            $stmt->fetch();
-            $stmt->close();
-            
-            // Approved Today
-            $stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE listing = 'approved' AND DATE(updated_at) = CURDATE()");
-            $stmt->execute();
-            $stmt->bind_result($approvedToday);
-            $stmt->fetch();
-            $stmt->close();
-            
-            // Rejected Today
-            $stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE listing = 'rejected' AND DATE(updated_at) = CURDATE()");
-            $stmt->execute();
-            $stmt->bind_result($rejectedToday);
-            $stmt->fetch();
-            $stmt->close();
-            
-            // Total Approved
-            $stmt = $conn->prepare("SELECT COUNT(*) FROM properties WHERE listing = 'approved'");
-            $stmt->execute();
-            $stmt->bind_result($totalApproved);
-            $stmt->fetch();
-            $stmt->close();
-            ?>
+        // Fetch approval stats
+        $pendingApprovals = 0;
+        $approvedToday = 0;
+        $rejectedToday = 0;
+        $totalApproved = 0;
+
+        // Pending Approvals
+        $stmt = $conn->prepare(
+            "SELECT COUNT(*) FROM properties WHERE listing = 'pending'"
+        );
+        $stmt->execute();
+        $stmt->bind_result($pendingApprovals);
+        $stmt->fetch();
+        $stmt->close();
+
+        // Approved Today
+        $stmt = $conn->prepare(
+            "SELECT COUNT(*) FROM properties WHERE listing = 'approved' AND DATE(updated_at) = CURDATE()"
+        );
+        $stmt->execute();
+        $stmt->bind_result($approvedToday);
+        $stmt->fetch();
+        $stmt->close();
+
+        // Rejected Today
+        $stmt = $conn->prepare(
+            "SELECT COUNT(*) FROM properties WHERE listing = 'rejected' AND DATE(updated_at) = CURDATE()"
+        );
+        $stmt->execute();
+        $stmt->bind_result($rejectedToday);
+        $stmt->fetch();
+        $stmt->close();
+
+        // Total Approved
+        $stmt = $conn->prepare(
+            "SELECT COUNT(*) FROM properties WHERE listing = 'approved'"
+        );
+        $stmt->execute();
+        $stmt->bind_result($totalApproved);
+        $stmt->fetch();
+        $stmt->close();
+        ?>
             
             <div class="col-md-3">
                 <div class="stats-card text-center">
@@ -2235,87 +2687,149 @@ $stmt->close();
                                                p.created_at DESC";
                             $approvalResult = $conn->query($approvalQuery);
                             while ($property = $approvalResult->fetch_assoc()):
-                                $statusClass = $property['listing'] === 'approved' ? 'success' : 
-                                            ($property['listing'] === 'pending' ? 'warning' : 'danger');
-                            ?>
+                                $statusClass =
+                                    $property["listing"] === "approved"
+                                        ? "success"
+                                        : ($property["listing"] === "pending"
+                                            ? "warning"
+                                            : "danger"); ?>
                             <tr class="approval-row" 
-                                data-id="<?php echo $property['id']; ?>"
-                                data-listing="<?php echo htmlspecialchars($property['listing']); ?>"
-                                data-type="<?php echo htmlspecialchars($property['type']); ?>"
-                                data-city="<?php echo htmlspecialchars($property['city']); ?>"
-                                data-price="<?php echo $property['price']; ?>">
+                                data-id="<?php echo $property["id"]; ?>"
+                                data-listing="<?php echo htmlspecialchars(
+                                    $property["listing"]
+                                ); ?>"
+                                data-type="<?php echo htmlspecialchars(
+                                    $property["type"]
+                                ); ?>"
+                                data-city="<?php echo htmlspecialchars(
+                                    $property["city"]
+                                ); ?>"
+                                data-price="<?php echo $property["price"]; ?>">
                                 <td>
-                                    <?php if ($property['listing'] === 'pending'): ?>
-                                        <input type="checkbox" class="approval-checkbox" value="<?php echo $property['id']; ?>">
+                                    <?php if (
+                                        $property["listing"] === "pending"
+                                    ): ?>
+                                        <input type="checkbox" class="approval-checkbox" value="<?php echo $property[
+                                            "id"
+                                        ]; ?>">
                                     <?php else: ?>
                                         <span class="text-muted">-</span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?php echo htmlspecialchars($property['id']); ?></td>
+                                <td><?php echo htmlspecialchars(
+                                    $property["id"]
+                                ); ?></td>
                                 <td>
                                     <div>
-                                        <strong><?php echo htmlspecialchars($property['title']); ?></strong>
-                                        <?php if ($property['description']): ?>
-                                            <br><small class="text-muted"><?php echo htmlspecialchars(substr($property['description'], 0, 50)) . '...'; ?></small>
+                                        <strong><?php echo htmlspecialchars(
+                                            $property["title"]
+                                        ); ?></strong>
+                                        <?php if ($property["description"]): ?>
+                                            <br><small class="text-muted"><?php echo htmlspecialchars(
+                                                substr(
+                                                    $property["description"],
+                                                    0,
+                                                    50
+                                                )
+                                            ) . "..."; ?></small>
                                         <?php endif; ?>
                                     </div>
                                 </td>
                                 <td>
                                     <div>
-                                        <strong><?php echo htmlspecialchars($property['owner_name']); ?></strong>
-                                        <br><small class="text-muted"><?php echo htmlspecialchars($property['owner_email']); ?></small>
-                                        <?php if ($property['owner_phone']): ?>
-                                            <br><small class="text-muted"><?php echo htmlspecialchars($property['owner_phone']); ?></small>
+                                        <strong><?php echo htmlspecialchars(
+                                            $property["owner_name"]
+                                        ); ?></strong>
+                                        <br><small class="text-muted"><?php echo htmlspecialchars(
+                                            $property["owner_email"]
+                                        ); ?></small>
+                                        <?php if ($property["owner_phone"]): ?>
+                                            <br><small class="text-muted"><?php echo htmlspecialchars(
+                                                $property["owner_phone"]
+                                            ); ?></small>
                                         <?php endif; ?>
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge bg-info"><?php echo htmlspecialchars($property['type']); ?></span>
+                                    <span class="badge bg-info"><?php echo htmlspecialchars(
+                                        $property["type"]
+                                    ); ?></span>
                                 </td>
                                 <td>
                                     <div>
-                                        <strong><?php echo htmlspecialchars($property['city']); ?></strong>
-                                        <?php if ($property['area']): ?>
-                                            <br><small class="text-muted"><?php echo htmlspecialchars($property['area']); ?></small>
+                                        <strong><?php echo htmlspecialchars(
+                                            $property["city"]
+                                        ); ?></strong>
+                                        <?php if ($property["area"]): ?>
+                                            <br><small class="text-muted"><?php echo htmlspecialchars(
+                                                $property["area"]
+                                            ); ?></small>
                                         <?php endif; ?>
                                     </div>
                                 </td>
                                 <td>
-                                    <strong class="text-success">PKR <?php echo number_format($property['price']); ?></strong>
+                                    <strong class="text-success">PKR <?php echo number_format(
+                                        $property["price"]
+                                    ); ?></strong>
                                 </td>
                                 <td>
                                     <span class="badge bg-<?php echo $statusClass; ?>">
-                                        <?php echo ucfirst($property['listing']); ?>
+                                        <?php echo ucfirst(
+                                            $property["listing"]
+                                        ); ?>
                                     </span>
                                 </td>
-                                <td><?php echo date('M d, Y H:i', strtotime($property['created_at'])); ?></td>
+                                <td><?php echo date(
+                                    "M d, Y H:i",
+                                    strtotime($property["created_at"])
+                                ); ?></td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <button class="btn btn-sm btn-outline-primary" 
-                                                onclick="viewPropertyForApproval(<?php echo $property['id']; ?>)"
+                                                onclick="viewPropertyForApproval(<?php echo $property[
+                                                    "id"
+                                                ]; ?>)"
                                                 title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <?php if ($property['listing'] === 'pending'): ?>
+                                        <?php if (
+                                            $property["listing"] === "pending"
+                                        ): ?>
                                             <button class="btn btn-sm btn-outline-success" 
-                                                    onclick="approveProperty(<?php echo $property['id']; ?>)"
+                                                    onclick="approveProperty(<?php echo $property[
+                                                        "id"
+                                                    ]; ?>)"
                                                     title="Approve Property">
                                                 <i class="fas fa-check"></i>
                                             </button>
                                             <button class="btn btn-sm btn-outline-danger" 
-                                                    onclick="rejectProperty(<?php echo $property['id']; ?>)"
+                                                    onclick="rejectProperty(<?php echo $property[
+                                                        "id"
+                                                    ]; ?>)"
                                                     title="Reject Property">
                                                 <i class="fas fa-times"></i>
                                             </button>
-                                        <?php elseif ($property['listing'] === 'approved'): ?>
+                                        <?php elseif (
+                                            $property["listing"] === "approved"
+                                        ): ?>
                                             <button class="btn btn-sm btn-outline-danger" 
-                                                    onclick="toggleListingStatus(<?php echo $property['id']; ?>, '<?php echo $property['listing']; ?>')"
+                                                    onclick="toggleListingStatus(<?php echo $property[
+                                                        "id"
+                                                    ]; ?>, '<?php echo $property[
+    "listing"
+]; ?>')"
                                                     title="Hide Property">
                                                 <i class="fas fa-times"></i>
                                             </button>
-                                        <?php elseif ($property['listing'] === 'rejected'): ?>
+                                        <?php elseif (
+                                            $property["listing"] === "rejected"
+                                        ): ?>
                                             <button class="btn btn-sm btn-outline-success" 
-                                                    onclick="toggleListingStatus(<?php echo $property['id']; ?>, '<?php echo $property['listing']; ?>')"
+                                                    onclick="toggleListingStatus(<?php echo $property[
+                                                        "id"
+                                                    ]; ?>, '<?php echo $property[
+    "listing"
+]; ?>')"
                                                     title="Show Property">
                                                 <i class="fas fa-check"></i>
                                             </button>
@@ -2323,7 +2837,9 @@ $stmt->close();
                                     </div>
                                 </td>
                             </tr>
-                            <?php endwhile; ?>
+                            <?php
+                            endwhile;
+                            ?>
                         </tbody>
                     </table>
                 </div>
@@ -2363,7 +2879,11 @@ function handleBuyRequest(id, action) {
             if(res.success) {
                 $('#req-' + id + ' td.status-pending').text(action.charAt(0).toUpperCase() + action.slice(1)).removeClass('status-pending').addClass('status-' + action);
                 $('#req-' + id + ' td:last').html('<span>-</span>');
-                alert(res.message || 'Request ' + action + ' successfully.');
+                iziToast.success({
+                    title: 'Success',
+                    message: res.message || 'Request ' + action + ' successfully.',
+                    position: 'topRight'
+                });
                 
                 // If approved, refresh the page to show updated statuses of other requests
                 if (action === 'approved') {
@@ -2373,14 +2893,22 @@ function handleBuyRequest(id, action) {
                     }, 1500);
                 }
             } else {
-                alert(res.message || 'Failed to update request.');
+                iziToast.error({
+                    title: 'Error',
+                    message: res.message || 'Failed to update request.',
+                    position: 'topRight'
+                });
             }
         },
         error: function() { 
             hideLoading();
             $('.btn').prop('disabled', false);
             $('#req-' + id).removeClass('row-loading');
-            alert('Error processing request.'); 
+            iziToast.error({
+                title: 'Error',
+                message: 'Error processing request.',
+                position: 'topRight'
+            }); 
         }
     });
 }
@@ -2522,7 +3050,7 @@ function toggleListingStatus(id, currentListing) {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -2587,7 +3115,11 @@ function toggleListingStatus(id, currentListing) {
 function bulkApprove() {
     const selectedIds = getSelectedApprovalIds();
     if (selectedIds.length === 0) {
-        alert('Please select properties to approve.');
+        iziToast.error({
+            title: 'Error',
+            message: 'Please select properties to approve.',
+            position: 'topRight'
+        });
         return;
     }
     
@@ -2606,16 +3138,28 @@ function bulkApprove() {
             $('.btn').prop('disabled', false);
             
             if(res.success) {
-                alert(res.message || 'Properties approved successfully.');
+                iziToast.success({
+                    title: 'Success',
+                    message: res.message || 'Properties approved successfully.',
+                    position: 'topRight'
+                });
                 location.reload();
             } else {
-                alert(res.message || 'Failed to approve properties.');
+                iziToast.error({
+                    title: 'Error',
+                    message: res.message || 'Failed to approve properties.',
+                    position: 'topRight'
+                });
             }
         },
         error: function() { 
             hideLoading();
             $('.btn').prop('disabled', false);
-            alert('Error processing bulk approval.'); 
+            iziToast.error({
+                title: 'Error',
+                message: 'Error processing bulk approval.',
+                position: 'topRight'
+            }); 
         }
     });
 }
@@ -2623,7 +3167,11 @@ function bulkApprove() {
 function bulkReject() {
     const selectedIds = getSelectedApprovalIds();
     if (selectedIds.length === 0) {
-        alert('Please select properties to reject.');
+        iziToast.error({
+            title: 'Error',
+            message: 'Please select properties to reject.',
+            position: 'topRight'
+        });
         return;
     }
     
@@ -2649,16 +3197,28 @@ function bulkReject() {
             $('.btn').prop('disabled', false);
             
             if(res.success) {
-                alert(res.message || 'Properties rejected successfully.');
+                iziToast.success({
+                    title: 'Success',
+                    message: res.message || 'Properties rejected successfully.',
+                    position: 'topRight'
+                });
                 location.reload();
             } else {
-                alert(res.message || 'Failed to reject properties.');
+                iziToast.error({
+                    title: 'Error',
+                    message: res.message || 'Failed to reject properties.',
+                    position: 'topRight'
+                });
             }
         },
         error: function() { 
             hideLoading();
             $('.btn').prop('disabled', false);
-            alert('Error processing bulk rejection.'); 
+            iziToast.error({
+                title: 'Error',
+                message: 'Error processing bulk rejection.',
+                position: 'topRight'
+            }); 
         }
     });
 }
@@ -2666,7 +3226,11 @@ function bulkReject() {
 function bulkView() {
     const selectedIds = getSelectedApprovalIds();
     if (selectedIds.length === 0) {
-        alert('Please select properties to view.');
+        iziToast.error({
+            title: 'Error',
+            message: 'Please select properties to view.',
+            position: 'topRight'
+        });
         return;
     }
     
@@ -2736,7 +3300,9 @@ $(document).ready(function() {
                             <i class="fas fa-wallet"></i>
                         </div>
                         <div class="stats-info">
-                            <h3>PKR <?php echo number_format($revenue ?: 0); ?></h3>
+                            <h3>PKR <?php echo number_format(
+                                $revenue ?: 0
+                            ); ?></h3>
                             <p>Total Revenue (as Seller)</p>
                         </div>
                     </div>
@@ -2747,7 +3313,9 @@ $(document).ready(function() {
                             <i class="fas fa-credit-card"></i>
                         </div>
                         <div class="stats-info">
-                            <h3>PKR <?php echo number_format($expenditure ?: 0); ?></h3>
+                            <h3>PKR <?php echo number_format(
+                                $expenditure ?: 0
+                            ); ?></h3>
                             <p>Total Expenditure (as Buyer)</p>
                         </div>
                     </div>
@@ -2774,12 +3342,22 @@ $(document).ready(function() {
                                 <?php if (!empty($transactions)): ?>
                                     <?php foreach ($transactions as $t): ?>
                                         <tr>
-                                            <td><?php echo $t['id']; ?></td>
-                                            <td><?php echo htmlspecialchars($t['property_title']); ?></td>
-                                            <td><?php echo htmlspecialchars($t['buyer_name']); ?></td>
-                                            <td><?php echo htmlspecialchars($t['seller_name']); ?></td>
-                                            <td>PKR <?php echo number_format($t['amount']); ?></td>
-                                            <td><?php echo $t['created_at']; ?></td>
+                                            <td><?php echo $t["id"]; ?></td>
+                                            <td><?php echo htmlspecialchars(
+                                                $t["property_title"]
+                                            ); ?></td>
+                                            <td><?php echo htmlspecialchars(
+                                                $t["buyer_name"]
+                                            ); ?></td>
+                                            <td><?php echo htmlspecialchars(
+                                                $t["seller_name"]
+                                            ); ?></td>
+                                            <td>PKR <?php echo number_format(
+                                                $t["amount"]
+                                            ); ?></td>
+                                            <td><?php echo $t[
+                                                "created_at"
+                                            ]; ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
@@ -3474,10 +4052,8 @@ $(document).ready(function() {
 
         // View property function
         function viewProperty(id) {
-            console.log('Viewing property with ID:', id);
             if (id) {
                 const url = `../view-property-detail.php?id=${id}`;
-                console.log('Opening URL:', url);
                 window.open(url, '_blank');
             } else {
                 iziToast.error({
@@ -3550,11 +4126,10 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
-                
-                // Update the action buttons
+            
                 const actionButtons = row.find("td:nth-child(10) .btn-group");
                 if (actionButtons.length) {
                     if (newListingStatus === "approved") {
@@ -3616,7 +4191,7 @@ $(document).ready(function() {
             const activeProperties = $(".property-row[data-status=\"active\"]").length;
             const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
             
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
             
             // Update stats cards if they exist
             $(".stats-card h3").each(function() {
@@ -3640,7 +4215,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -3716,7 +4291,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -3782,7 +4357,7 @@ $(document).ready(function() {
             const activeProperties = $(".property-row[data-status=\"active\"]").length;
             const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
             
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
             
             // Update stats cards if they exist
             $(".stats-card h3").each(function() {
@@ -3806,7 +4381,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -3915,7 +4490,7 @@ $(document).ready(function() {
             const regularUsers = $('.user-row[data-role="user"]').length;
             const activeUsers = $('.user-row[data-status="active"]').length;
             
-            console.log('Updating stats:', { totalUsers, adminUsers, regularUsers, activeUsers });
+            
             
             // Update stats cards if they exist
             $('.stats-card h3').each(function() {
@@ -3941,7 +4516,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -4007,7 +4582,7 @@ $(document).ready(function() {
             const activeProperties = $(".property-row[data-status=\"active\"]").length;
             const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
             
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
             
             // Update stats cards if they exist
             $(".stats-card h3").each(function() {
@@ -4031,7 +4606,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -4108,7 +4683,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -4174,7 +4749,7 @@ $(document).ready(function() {
             const activeProperties = $(".property-row[data-status=\"active\"]").length;
             const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
             
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
             
             // Update stats cards if they exist
             $(".stats-card h3").each(function() {
@@ -4198,7 +4773,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -4276,7 +4851,7 @@ $(document).ready(function() {
             fetch('../backend/fetch-referral-dashboard.php')
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Fetched data:', data);
+                    
 
                     if (data.status === 'success') {
                         // Add null checks for rewards elements
@@ -4325,10 +4900,14 @@ $(document).ready(function() {
 
                             referralBtn.addEventListener('click', () => {
                                 navigator.clipboard.writeText(data.referral_code).then(() => {
-                                    alert('Referral code copied: ' + data.referral_code);
-                                                });
-            });
-        }
+                                    iziToast.success({
+                                        title: 'Success',
+                                        message: 'Referral code copied to clipboard!',
+                                        position: 'topRight'
+                                    });
+                                });
+                            });
+                        }
                     } else {
                         console.warn('Status not success:', data);
                     }
@@ -4450,7 +5029,7 @@ $(document).ready(function() {
         $(document).on('click', '.edit-btn', function() {
             const property = $(this).data('property');
 
-            console.log('Editing Property:', property);
+            
 
             $('#editPropertyId').val(property.id);
             $('#editTitle').val(property.title);
@@ -4509,13 +5088,13 @@ $(document).ready(function() {
         }
     </script>
 
-    <script>
+<script>
         // Global functions for admin properties
         function viewProperty(id) {
-            console.log('Viewing property with ID:', id);
+            
             if (id) {
                 const url = `../view-property-detail.php?id=${id}`;
-                console.log('Opening URL:', url);
+                
                 window.open(url, '_blank');
             } else {
                 iziToast.error({
@@ -4681,7 +5260,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -4747,7 +5326,7 @@ $(document).ready(function() {
             const activeProperties = $(".property-row[data-status=\"active\"]").length;
             const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
             
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
             
             // Update stats cards if they exist
             $(".stats-card h3").each(function() {
@@ -4771,7 +5350,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -4929,7 +5508,7 @@ $(document).ready(function() {
             const regularUsers = $('.user-row[data-role="user"]').length;
             const activeUsers = $('.user-row[data-status="active"]').length;
             
-            console.log('Updating stats:', { totalUsers, adminUsers, regularUsers, activeUsers });
+            
             
             // Update stats cards if they exist
             $('.stats-card h3').each(function() {
@@ -4955,7 +5534,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -5021,7 +5600,7 @@ $(document).ready(function() {
             const activeProperties = $(".property-row[data-status=\"active\"]").length;
             const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
             
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
             
             // Update stats cards if they exist
             $(".stats-card h3").each(function() {
@@ -5045,7 +5624,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -5123,7 +5702,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -5189,7 +5768,7 @@ $(document).ready(function() {
             const activeProperties = $(".property-row[data-status=\"active\"]").length;
             const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
             
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
             
             // Update stats cards if they exist
             $(".stats-card h3").each(function() {
@@ -5213,7 +5792,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -5317,7 +5896,7 @@ $(document).ready(function() {
             // Location field validation (same as name field in signup)
             $('input[name="location"]').on('input', function(e) {
                 // Only allow letters, spaces, and common punctuation
-                let value = this.value.replace(/[^A-Za-z\s,.-]/g, '');
+                let value = this.value.replace(/[^A-Za-z\s,.\-]/g, '');
                 if (this.value !== value) {
                     this.value = value;
                 }
@@ -5326,7 +5905,7 @@ $(document).ready(function() {
             // Location field paste validation
             $('input[name="location"]').on('paste', function(e) {
                 let paste = (e.clipboardData || window.clipboardData).getData('text');
-                let filtered = paste.replace(/[^A-Za-z\s,.-]/g, '');
+                let filtered = paste.replace(/[^A-Za-z\s,.\-]/g, '');
                 e.preventDefault();
                 // Insert filtered text at cursor position
                 const start = this.selectionStart;
@@ -5395,8 +5974,7 @@ $(document).ready(function() {
                 }
                 e.preventDefault();
                 this.value = formatted;
-            });
-
+            })
             // Bio field character counter
             $('textarea[name="bio"]').on('input', function() {
                 const maxLength = 500;
@@ -5429,8 +6007,7 @@ $(document).ready(function() {
                 } else {
                     counter.removeClass('text-danger');
                 }
-            });
-
+            })
             // Real-time validation feedback
             $('input[name="full_name"]').on('blur', function() {
                 const pattern = /^[A-Za-z\s]+$/;
@@ -5441,7 +6018,7 @@ $(document).ready(function() {
                 } else {
                     $(this).removeClass('is-valid is-invalid');
                 }
-            });
+            })
 
             $('input[name="phone"]').on('blur', function() {
                 const pattern = /^[0-9]{4}-[0-9]{7}$/;
@@ -5452,10 +6029,10 @@ $(document).ready(function() {
                 } else {
                     $(this).removeClass('is-valid is-invalid');
                 }
-            });
+            })
 
             $('input[name="location"]').on('blur', function() {
-                const pattern = /^[A-Za-z\s,.-]+$/;
+                const pattern = /^[A-Za-z\s,.\-]+$/;
                 if (this.value && !pattern.test(this.value)) {
                     $(this).addClass('is-invalid').removeClass('is-valid');
                 } else if (this.value) {
@@ -5463,7 +6040,7 @@ $(document).ready(function() {
                 } else {
                     $(this).removeClass('is-valid is-invalid');
                 }
-            });
+            })
 
             $('input[name="cnic"]').on('blur', function() {
                 const pattern = /^[0-9]{5}-[0-9]{7}-[0-9]{1}$/;
@@ -5474,54 +6051,9 @@ $(document).ready(function() {
                 } else {
                     $(this).removeClass('is-valid is-invalid');
                 }
-            });
+            })
 
-            // Form validation on submit
-            $('#profileForm').on('submit', function(e) {
-                const form = this;
-                let isValid = true;
-
-                // Validate required fields
-                $(form).find('input[required]').each(function() {
-                    if (!this.checkValidity()) {
-                        isValid = false;
-                        $(this).addClass('is-invalid');
-                    } else {
-                        $(this).removeClass('is-invalid');
-                    }
-                });
-
-                // Custom validation for phone format
-                const phoneInput = $('input[name="phone"]');
-                const phonePattern = /^[0-9]{4}-[0-9]{7}$/;
-                if (phoneInput.val() && !phonePattern.test(phoneInput.val())) {
-                    isValid = false;
-                    phoneInput.addClass('is-invalid');
-                }
-
-                // Custom validation for CNIC format
-                const cnicInput = $('input[name="cnic"]');
-                const cnicPattern = /^[0-9]{5}-[0-9]{7}-[0-9]{1}$/;
-                if (cnicInput.val() && !cnicPattern.test(cnicInput.val())) {
-                    isValid = false;
-                    cnicInput.addClass('is-invalid');
-                }
-
-                if (!isValid) {
-                    e.preventDefault();
-                    iziToast.error({
-                        title: 'Validation Error',
-                        message: 'Please correct the errors in the form.',
-                        position: 'topRight'
-                    });
-                    return false;
-                }
-
-                // If validation passes, proceed with form submission
-                return true;
-            });
-        }
-        
+        })
         
         function updateApprovalRow(propertyId, newListingStatus) {
             const row = $(`.approval-row[data-id="${propertyId}"]`);
@@ -5531,7 +6063,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -5590,104 +6122,13 @@ $(document).ready(function() {
             }
         }
         
-        
-        // function updatePropertyStats() {
-        //     // Update the stats cards with new counts
-        //     const totalProperties = $(".property-row").length;
-        //     const activeProperties = $(".property-row[data-status=\"active\"]").length;
-        //     const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
-            
-        //     console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
-            
-        //     // Update stats cards if they exist
-        //     $(".stats-card h3").each(function() {
-        //         const cardText = $(this).next("p").text().toLowerCase();
-        //         if (cardText.includes("total properties")) {
-        //             $(this).text(totalProperties);
-        //         } else if (cardText.includes("active properties")) {
-        //             $(this).text(activeProperties);
-        //         } else if (cardText.includes("pending properties")) {
-        //             $(this).text(pendingProperties);
-        //         }
-        //     });
-        // }
-        
-        
-        // function updateApprovalRow(propertyId, newListingStatus) {
-        //     const row = $(`.approval-row[data-id="${propertyId}"]`);
-        //     if (row.length) {
-        //         // Update the status badge
-        //         const statusBadge = row.find("td:nth-child(8) .badge");
-        //         if (statusBadge.length) {
-        //             statusBadge.removeClass("bg-success bg-danger bg-warning")
-        //                 .addClass(newListingStatus === "approved" ? "bg-success" : 
-        //                          newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
-        //                 .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
-        //         }
-                
-        //         // Update the action buttons
-        //         const actionButtons = row.find("td:nth-child(10) .btn-group");
-        //         if (actionButtons.length) {
-        //             if (newListingStatus === "approved") {
-        //                 actionButtons.html(`
-        //                     <button class="btn btn-sm btn-outline-primary" 
-        //                             onclick="viewPropertyForApproval(${propertyId})"
-        //                             title="View Details">
-        //                         <i class="fas fa-eye"></i>
-        //                     </button>
-        //                     <button class="btn btn-sm btn-outline-danger" 
-        //                             onclick="toggleListingStatus(${propertyId}, 'approved')"
-        //                             title="Hide Property">
-        //                         <i class="fas fa-times"></i>
-        //                     </button>
-        //                 `);
-        //             } else if (newListingStatus === "rejected") {
-        //                 actionButtons.html(`
-        //                     <button class="btn btn-sm btn-outline-primary" 
-        //                             onclick="viewPropertyForApproval(${propertyId})"
-        //                             title="View Details">
-        //                         <i class="fas fa-eye"></i>
-        //                     </button>
-        //                     <button class="btn btn-sm btn-outline-success" 
-        //                             onclick="toggleListingStatus(${propertyId}, 'rejected')"
-        //                             title="Show Property">
-        //                         <i class="fas fa-check"></i>
-        //                     </button>
-        //                 `);
-        //             } else {
-        //                 actionButtons.html(`
-        //                     <button class="btn btn-sm btn-outline-primary" 
-        //                             onclick="viewPropertyForApproval(${propertyId})"
-        //                             title="View Details">
-        //                         <i class="fas fa-eye"></i>
-        //                     </button>
-        //                     <button class="btn btn-sm btn-outline-success" 
-        //                             onclick="approveProperty(${propertyId})"
-        //                             title="Approve Property">
-        //                         <i class="fas fa-check"></i>
-        //                     </button>
-        //                     <button class="btn btn-sm btn-outline-danger" 
-        //                             onclick="rejectProperty(${propertyId})"
-        //                             title="Reject Property">
-        //                         <i class="fas fa-times"></i>
-        //                     </button>
-        //                 `);
-        //             }
-        //         }
-                
-        //         // Update the data attribute
-        //         row.attr("data-listing", newListingStatus);
-        //     }
-        // }
-        
-        
         function updatePropertyStats() {
             // Update the stats cards with new counts
             const totalProperties = $(".property-row").length;
             const activeProperties = $(".property-row[data-status=\"active\"]").length;
             const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
             
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
             
             // Update stats cards if they exist
             $(".stats-card h3").each(function() {
@@ -5711,7 +6152,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 (newListingStatus === "rejected" ? "bg-danger" : "bg-warning"))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -5768,11 +6209,26 @@ $(document).ready(function() {
                 // Update the data attribute
                 row.attr("data-listing", newListingStatus);
             }
-        });
+        }
 
         $(document).ready(function() {
+            
+            
+            // Add global error handler
+            window.addEventListener('error', function(e) {
+                console.error('JavaScript error:', e.error);
+                iziToast.error({
+                    title: 'Error',
+                    message: 'A JavaScript error occurred. Please refresh the page.',
+                    position: 'topRight'
+                });
+            });
+            
             // Only fetch saved properties for non-admin users
-            <?php if (!isset($userRole) || strtolower($userRole) !== 'admin'): ?>
+            <?php if (
+                !isset($userRole) ||
+                strtolower($userRole) !== "admin"
+            ): ?>
             fetchSavedProperties();
             <?php endif; ?>
 
@@ -5782,7 +6238,7 @@ $(document).ready(function() {
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
-                    console.log('Fetched Dashboard Details:', response);
+                    
 
                     if (response.success) {
                         // Profile Picture
@@ -5804,6 +6260,8 @@ $(document).ready(function() {
                             .attr('placeholder', response.data.phone ? '' : 'Add your phone number to complete your profile.');
                         $('#profileForm input[name="location"]').val(response.data.location || '')
                             .attr('placeholder', response.data.location ? '' : 'Specify your city or address.');
+                        $('#profileForm input[name="cnic"]').val(response.data.cnic || '')
+                            .attr('placeholder', response.data.cnic ? '' : 'Enter your CNIC number');
                         $('#profileForm textarea[name="bio"]').val(response.data.bio || '')
                             .attr('placeholder', response.data.bio ? '' : 'Write a short bio about yourself or your profession.');
 
@@ -5821,84 +6279,92 @@ $(document).ready(function() {
             });
 
 
-            // ----------------- Profile Form Validation -------------------
-            // Full Name field validation (same as name field in signup)
-            $('input[name="full_name"]').on('input', function(e) {
-                // Only allow letters and spaces
-                let value = this.value.replace(/[^A-Za-z\s]/g, '');
-                if (this.value !== value) {
-                    this.value = value;
-                }
-            });
-
-            // Full Name field paste validation
-            $('input[name="full_name"]').on('paste', function(e) {
-                let paste = (e.clipboardData || window.clipboardData).getData('text');
-                let filtered = paste.replace(/[^A-Za-z\s]/g, '');
-                e.preventDefault();
-                // Insert filtered text at cursor position
-                const start = this.selectionStart;
-                const end = this.selectionEnd;
-                this.value = this.value.slice(0, start) + filtered + this.value.slice(end);
-                // Move cursor to end of inserted text
-                this.selectionStart = this.selectionEnd = start + filtered.length;
-            });
-
-
-            // Phone field validation (same as signup)
-            $('input[name="phone"]').on('input', function(e) {
-                // Remove all non-digits
-                let value = this.value.replace(/\D/g, '');
-                // Limit to 11 digits (4 for code, 7 for number)
-                value = value.substring(0, 11);
-
-                // Format as 0300-1234567
-                let formatted = value;
-                if (value.length > 4) {
-                    formatted = value.substring(0, 4) + '-' + value.substring(4, 11);
-                }
-                this.value = formatted;
-            });
-
-            // Phone field paste validation
-            $('input[name="phone"]').on('paste', function(e) {
-                let paste = (e.clipboardData || window.clipboardData).getData('text');
-                let digits = paste.replace(/\D/g, '').substring(0, 11);
-                let formatted = digits;
-                if (digits.length > 4) {
-                    formatted = digits.substring(0, 4) + '-' + digits.substring(4, 11);
-                }
-                e.preventDefault();
-                this.value = formatted;
-            });
-            
-            // Location field validation (same as name field in signup)
-            $('input[name="location"]').on('input', function(e) {
-                // Only allow letters, spaces, and common punctuation
-                let value = this.value.replace(/[^A-Za-z\s,.-]/g, '');
-                if (this.value !== value) {
-                    this.value = value;
-                }
-            });
-
-            // Location field paste validation
-            $('input[name="location"]').on('paste', function(e) {
-                let paste = (e.clipboardData || window.clipboardData).getData('text');
-                let filtered = paste.replace(/[^A-Za-z\s,.-]/g, '');
-                e.preventDefault();
-                // Insert filtered text at cursor position
-                const start = this.selectionStart;
-                const end = this.selectionEnd;
-                this.value = this.value.slice(0, start) + filtered + this.value.slice(end);
-                // Move cursor to end of inserted text
-                this.selectionStart = this.selectionEnd = start + filtered.length;
-            });
-
             // ----------------- Update Profile -------------------
+
+            
+
+            
             $('#profileForm').submit(function(e) {
                 e.preventDefault();
 
+                const form = this;
+                let isValid = true;
+                let validationErrors = [];
+
+                // Debug: Log all form fields
+                
+                $(form).find('input, textarea').each(function() {
+                    
+                });
+
+                // Validate required fields
+                $(form).find('input[required]').each(function() {
+                    
+                    if (!this.checkValidity()) {
+                        isValid = false;
+                        $(this).addClass('is-invalid');
+                        validationErrors.push($(this).attr('name') + ' is required');
+                        
+                    } else {
+                        $(this).removeClass('is-invalid');
+                        
+                    }
+                });
+
+                // Custom validation for phone format
+                const phoneInput = $('input[name="phone"]');
+                const phonePattern = /^[0-9]{4}-[0-9]{7}$/;
+                
+                if (phoneInput.val() && !phonePattern.test(phoneInput.val())) {
+                    isValid = false;
+                    phoneInput.addClass('is-invalid');
+                    validationErrors.push('Phone number must be in format: 03XX-XXXXXXX');
+                    
+                } else if (phoneInput.val()) {
+                    phoneInput.removeClass('is-invalid');
+                    
+                }
+
+                // Custom validation for CNIC format
+                const cnicInput = $('input[name="cnic"]');
+                const cnicPattern = /^[0-9]{5}-[0-9]{7}-[0-9]{1}$/;
+                
+                if (cnicInput.val() && !cnicPattern.test(cnicInput.val())) {
+                    isValid = false;
+                    cnicInput.addClass('is-invalid');
+                    validationErrors.push('CNIC must be in format: XXXXX-XXXXXXX-X');
+                    
+                } else if (cnicInput.val()) {
+                    cnicInput.removeClass('is-invalid');
+                    
+                }
+
+                // Show debug toast with validation results
+                if (!isValid) {
+                    
+                    iziToast.error({
+                        title: 'Validation Failed',
+                        message: 'Please fix these errors:\n' + validationErrors.join('\n'),
+                        position: 'topRight',
+                        timeout: 5000
+                    });
+                    return false;
+                }
+
+                // If validation passes, proceed with form submission
+                
+                iziToast.info({
+                    title: 'Processing',
+                    message: 'Saving profile changes...',
+                    position: 'topRight'
+                });
+                
                 var formData = new FormData(this);
+                
+                // Log form data for debugging
+                for (let pair of formData.entries()) {
+                    
+                }
 
                 $.ajax({
                     url: '../backend/update-user-details.php',
@@ -5907,13 +6373,29 @@ $(document).ready(function() {
                     contentType: false,
                     processData: false,
                     dataType: 'json',
+                    beforeSend: function() {
+                        
+                        iziToast.info({
+                            title: 'Sending Request',
+                            message: 'Submitting profile changes to server...',
+                            position: 'topRight'
+                        });
+                    },
                     success: function(response) {
-                        console.log('Profile Update Response:', response);
+                        
+                        
+                        // Debug toast to show the response
+                        iziToast.info({
+                            title: 'Server Response',
+                            message: 'Response received: ' + JSON.stringify(response),
+                            position: 'topRight',
+                            timeout: 3000
+                        });
 
                         if (response.success) {
-                            console.log('Profile update successful');
+                            
                             if (response.picture_path) {
-                                console.log('New picture path:', response.picture_path);
+                                
                             }
                             iziToast.success({
                                 title: 'Success',
@@ -5943,18 +6425,23 @@ $(document).ready(function() {
                             }, 1000);
                         } else {
                             iziToast.error({
-                                title: 'Error',
-                                message: 'Failed to update profile.',
+                                title: 'Server Error',
+                                message: response.message || 'Failed to update profile.',
                                 position: 'topRight'
                             });
                         }
                     },
                     error: function(xhr, status, error) {
                         console.error('Profile update error:', xhr.responseText);
+                        console.error('Status:', status);
+                        console.error('Error:', error);
+                        
+                        // Debug toast to show the error details
                         iziToast.error({
-                            title: 'Error',
-                            message: 'An error occurred while updating the profile: ' + error,
-                            position: 'topRight'
+                            title: 'AJAX Error',
+                            message: 'Status: ' + status + '\nError: ' + error + '\nResponse: ' + xhr.responseText,
+                            position: 'topRight',
+                            timeout: 5000
                         });
                     }
                 });
@@ -5963,16 +6450,21 @@ $(document).ready(function() {
             // ----------------- Profile Picture Handling -------------------
             // Handle file input change for profile picture preview
             let isProcessingFile = false;
+            
+            // Remove any existing event handlers and add new one
             $('#profilePictureInput').off('change').on('change', function() {
-                console.log('File input change event triggered');
+                
+                
                 if (isProcessingFile) {
-                    console.log('Already processing file, skipping');
+                    
                     return;
                 }
                 isProcessingFile = true;
                 
                 const file = this.files[0];
                 if (file) {
+                    
+                    
                     // Validate file type
                     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
                     if (!allowedTypes.includes(file.type)) {
@@ -6001,17 +6493,39 @@ $(document).ready(function() {
                     // Preview the image
                     const reader = new FileReader();
                     reader.onload = function(e) {
+                        
                         $('.profile-avatar').attr('src', e.target.result);
+                        isProcessingFile = false;
+                    };
+                    reader.onerror = function() {
+                        console.error('Error reading file');
+                        iziToast.error({
+                            title: 'Error',
+                            message: 'Failed to read the image file',
+                            position: 'topRight'
+                        });
                         isProcessingFile = false;
                     };
                     reader.readAsDataURL(file);
                 } else {
+                    
                     isProcessingFile = false;
                 }
             });
 
-            // Handle upload button click - using label approach (no JavaScript needed)
-            // The label automatically triggers the file input when clicked
+            // Handle upload button click
+            $('#uploadPictureBtn').off('click').on('click', function(e) {
+                e.preventDefault();
+                
+                $('#profilePictureInput').click();
+            });
+            
+            // Add a test button to manually trigger file input (for debugging)
+            if ($('#uploadPictureBtn').length === 0) {
+                console.error('Upload button not found!');
+            } else {
+                
+            }
 
             // ----------------- Fetch User Properties -------------------
             fetchUserProperties();
@@ -6022,7 +6536,7 @@ $(document).ready(function() {
                     type: 'GET',
                     dataType: 'json',
                     success: function(response) {
-                        console.log('Fetched User Properties:', response);
+                        
 
                         if (response.success) {
                             renderProperties(response.data);
@@ -6059,9 +6573,9 @@ $(document).ready(function() {
 
                 properties.forEach(property => {
                     html += `
-            <div class="col-md-6 col-xl-4">
-                <div class="property-card card h-100">
-                    <div class="property-image-wrapper">
+                           <div class="col-md-6 col-xl-4">
+                         <div class="property-card card h-100">
+                             <div class="property-image-wrapper">
                         <img src="${getFirstImage(property)}" class="card-img-top" alt="Property">
                         <div class="property-badges">
                             <span class="badge bg-success">Active</span>
@@ -6069,16 +6583,16 @@ $(document).ready(function() {
                         </div>
                         <div class="property-actions">
                             <button class="btn btn-light btn-sm edit-btn" title="Edit" data-id="${property.id}" data-property='${JSON.stringify(property)}'>
-    <i class="fas fa-edit"></i>
-</button>
+                                    <i class="fas fa-edit"></i>
+                           </button>
 
                           <button class="btn btn-light btn-sm delete-btn" title="Delete" data-property-id="${property.id}">
-    <i class="fas fa-trash"></i>
-</button>
+                      <i class="fas fa-trash"></i>
+                       </button>
 
                         </div>
                     </div>
-                    <div class="card-body">
+                      <div class="card-body">
                         <h5 class="card-title">${property.title}</h5>
                         <p class="card-text text-primary fw-bold">PKR ${property.price ? Number(property.price).toLocaleString() : 'N/A'}</p>
                         <p class="card-text"><i class="fas fa-map-marker-alt"></i> ${property.city || 'Location not specified'}</p>
@@ -6086,20 +6600,20 @@ $(document).ready(function() {
                             <span><i class="fas fa-ruler-combined"></i> ${property.area} ${property.unit}</span>
                             <span><i class="fas fa-home"></i> ${property.type}</span>
                         </div>
-                    </div>
-                    <div class="card-footer bg-white">
+                             </div>
+                              <div class="card-footer bg-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="property-stats">
                             </div>
                             <button class="btn btn-primary btn-sm" onclick="window.location.href='../view-property-detail.php?id=${property.id}'">
-    View Details
-</button>
+                            View Details
+                      </button>
 
                         </div>
-                    </div>
-                </div>
-            </div>
-        `;
+                                </div>
+                             </div>
+                               </div>
+                    `;
                 });
 
                 $('#propertyList').html(html);
@@ -6150,16 +6664,14 @@ $(document).ready(function() {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' }
                     });
-                    console.log('Raw fetch response:', res);
+                   
 
                     if (!res.ok) {
                         throw new Error(`HTTP error! Status: ${res.status}`);
                     }
 
                     const data = await res.json();
-                    console.log('fetch-user-saved-properties response:', data);
-                    console.log('Response status:', data.status);
-                    console.log('Properties array:', data.properties);
+                    
 
                     const savedSection = document.querySelector('#saved .row');
 
@@ -6185,10 +6697,10 @@ $(document).ready(function() {
                                 </div>
                             </div>
                             <div class="card-footer bg-white">
-    <button class="btn btn-primary w-100" onclick="window.location.href='../view-property-detail.php?id=${property.id}'">
-        View Property Details
-    </button>
-</div>
+                                <button class="btn btn-primary w-100" onclick="window.location.href='../view-property-detail.php?id=${property.id}'">
+                                    View Property Details
+                                </button>
+                     </div>
 
                         </div>
                     </div>
@@ -6206,7 +6718,7 @@ $(document).ready(function() {
                         });
 
                     } else {
-                        console.log('No saved properties returned:', data);
+                        
                         savedSection.innerHTML = `
                 <div class="col-12">
                     <p class="text-muted text-center">You have no saved properties yet.</p>
@@ -6276,17 +6788,13 @@ $(document).ready(function() {
                 }
             }
 
-
-
-
-
             // delete property
             $(document).on('click', '.delete-btn', function() {
                 const propertyId = $(this).data('property-id');
-                console.log('Delete button clicked for property ID:', propertyId);
+                
 
                 if (confirm('Are you sure you want to delete this property?')) {
-                    console.log('User confirmed deletion, sending request...');
+                   
                     
                     $.ajax({
                         url: '../backend/delete-property.php',
@@ -6296,17 +6804,17 @@ $(document).ready(function() {
                         },
                         dataType: 'json',
                         beforeSend: function() {
-                            console.log('Sending delete request for property ID:', propertyId);
+                            
                         },
                         success: function(response) {
-                            console.log('Delete response:', response);
+                            
                             if (response.success) {
                                 iziToast.success({
                                     title: 'Deleted',
                                     message: 'Property deleted successfully.',
                                     position: 'topRight'
                                 });
-                                console.log('Property deleted successfully, refreshing list...');
+                                
                                 fetchUserProperties(); // Refresh properties
                             } else {
                                 iziToast.error({
@@ -6314,7 +6822,7 @@ $(document).ready(function() {
                                     message: response.message || 'Failed to delete property.',
                                     position: 'topRight'
                                 });
-                                console.log('Delete failed:', response.message);
+                                
                             }
                         },
                         error: function(xhr, status, error) {
@@ -6327,22 +6835,12 @@ $(document).ready(function() {
                         }
                     });
                 } else {
-                    console.log('User cancelled deletion');
+                    
                 }
             });
 
-        // Account Settings Functions
-        // Change Password Form Handler
-        console.log('Setting up change password form handler');
-        console.log('jQuery available:', typeof $ !== 'undefined');
-        console.log('Form exists:', $('#changePasswordForm').length > 0);
-        console.log('iziToast available:', typeof iziToast !== 'undefined');
-        
-        // Test if button exists
-        console.log('Change password button exists:', $('#changePasswordBtn').length > 0);
-        
         $('#changePasswordBtn').on('click', function(e) {
-            console.log('Change password button clicked');
+            
             e.preventDefault();
             e.stopPropagation();
             
@@ -6352,69 +6850,44 @@ $(document).ready(function() {
                 $(this).removeClass('btn-success').addClass('btn-primary');
             }, 200);
             
-            console.log('Change password form submitted');
+            
             
             // Get form values
             const currentPassword = $('#currentPassword').val();
             const newPassword = $('#newPassword').val();
             const confirmPassword = $('#confirmPassword').val();
             
-            console.log('Form values:', {
-                currentPassword: currentPassword ? 'filled' : 'empty',
-                newPassword: newPassword ? 'filled' : 'empty',
-                confirmPassword: confirmPassword ? 'filled' : 'empty'
-            });
-            
-            console.log('Form data:', {
-                currentPassword: currentPassword ? 'filled' : 'empty',
-                newPassword: newPassword ? 'filled' : 'empty',
-                confirmPassword: confirmPassword ? 'filled' : 'empty'
-            });
+
             
             // Validation
             if (!currentPassword || !newPassword || !confirmPassword) {
-                console.log('Validation failed: missing fields');
-                if (typeof iziToast !== 'undefined') {
-                    iziToast.error({
-                        title: 'Error',
-                        message: 'Please fill in all fields.',
-                        position: 'topRight'
-                    });
-                } else {
-                    alert('Please fill in all fields.');
-                }
+                iziToast.error({
+                    title: 'Error',
+                    message: 'Please fill in all fields.',
+                    position: 'topRight'
+                });
                 return;
             }
             
             if (newPassword !== confirmPassword) {
-                console.log('Validation failed: passwords do not match');
-                if (typeof iziToast !== 'undefined') {
-                    iziToast.error({
-                        title: 'Error',
-                        message: 'New password and confirm password do not match.',
-                        position: 'topRight'
-                    });
-                } else {
-                    alert('New password and confirm password do not match.');
-                }
+                iziToast.error({
+                    title: 'Error',
+                    message: 'New password and confirm password do not match.',
+                    position: 'topRight'
+                });
                 return;
             }
             
             if (newPassword.length < 6) {
-                console.log('Validation failed: password too short');
-                if (typeof iziToast !== 'undefined') {
-                    iziToast.error({
-                        title: 'Error',
-                        message: 'New password must be at least 6 characters long.',
-                        position: 'topRight'
-                    });
-                } else {
-                    alert('New password must be at least 6 characters long.');
-                }
+                iziToast.error({
+                    title: 'Error',
+                    message: 'New password must be at least 6 characters long.',
+                    position: 'topRight'
+                });
                 return;
             }
             
-            console.log('Sending AJAX request to change password');
+            
             
             // Submit form
             $.ajax({
@@ -6427,44 +6900,30 @@ $(document).ready(function() {
                 },
                 dataType: 'json',
                 success: function(response) {
-                    console.log('Change password response:', response);
                     if (response.success) {
-                        if (typeof iziToast !== 'undefined') {
-                            iziToast.success({
-                                title: 'Success',
-                                message: 'Password changed successfully!',
-                                position: 'topRight'
-                            });
-                        } else {
-                            alert('Password changed successfully!');
-                        }
+                        iziToast.success({
+                            title: 'Success',
+                            message: 'Password changed successfully!',
+                            position: 'topRight'
+                        });
                         $('#changePasswordForm')[0].reset();
                     } else {
-                        if (typeof iziToast !== 'undefined') {
-                            iziToast.error({
-                                title: 'Error',
-                                message: response.message || 'Failed to change password.',
-                                position: 'topRight'
-                            });
-                        } else {
-                            alert(response.message || 'Failed to change password.');
-                        }
+                        iziToast.error({
+                            title: 'Error',
+                            message: response.message || 'Failed to change password.',
+                            position: 'topRight'
+                        });
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.log('Change password error:', {xhr, status, error});
-                    if (typeof iziToast !== 'undefined') {
-                        iziToast.error({
-                            title: 'Error',
-                            message: 'An error occurred while changing password.',
-                            position: 'topRight'
-                        });
-                    } else {
-                        alert('An error occurred while changing password.');
-                    }
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'An error occurred while changing password.',
+                        position: 'topRight'
+                    });
                 }
             });
-        }
+        })
         
         
         function updateApprovalRow(propertyId, newListingStatus) {
@@ -6475,7 +6934,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -6541,7 +7000,7 @@ $(document).ready(function() {
             const activeProperties = $(".property-row[data-status=\"active\"]").length;
             const pendingProperties = $(".property-row[data-listing=\"pending\"]").length;
             
-            console.log("Updating property stats:", { totalProperties, activeProperties, pendingProperties });
+            
             
             // Update stats cards if they exist
             $(".stats-card h3").each(function() {
@@ -6565,7 +7024,7 @@ $(document).ready(function() {
                 if (statusBadge.length) {
                     statusBadge.removeClass("bg-success bg-danger bg-warning")
                         .addClass(newListingStatus === "approved" ? "bg-success" : 
-                                 newListingStatus === "rejected" ? "bg-danger" : "bg-warning")
+                                 ((newListingStatus === "rejected" ? "bg-danger" : "bg-warning")))
                         .text(newListingStatus.charAt(0).toUpperCase() + newListingStatus.slice(1));
                 }
                 
@@ -6626,7 +7085,7 @@ $(document).ready(function() {
 
         // Password visibility toggle event listeners
         function setupPasswordToggles() {
-            console.log('Setting up password toggles...');
+            
             
             // Simple toggle function
             function togglePasswordVisibility(inputSelector, buttonSelector) {
@@ -6634,17 +7093,17 @@ $(document).ready(function() {
                 const button = $(buttonSelector);
                 const icon = button.find('i');
                 
-                console.log('Toggling password for:', inputSelector);
-                console.log('Current type:', input.attr('type'));
+                
+                
                 
                 if (input.attr('type') === 'password') {
                     input.attr('type', 'text');
                     icon.removeClass('fa-eye').addClass('fa-eye-slash');
-                    console.log('Changed to text, icon to eye-slash');
+                    
                 } else {
                     input.attr('type', 'password');
                     icon.removeClass('fa-eye-slash').addClass('fa-eye');
-                    console.log('Changed to password, icon to eye');
+                    
                 }
             }
             
@@ -6652,35 +7111,29 @@ $(document).ready(function() {
             $('#toggleCurrentPassword').off('click').on('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Toggle current password clicked');
+                
                 togglePasswordVisibility('#currentPassword', '#toggleCurrentPassword');
             });
             
             $('#toggleNewPassword').off('click').on('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Toggle new password clicked');
+                
                 togglePasswordVisibility('#newPassword', '#toggleNewPassword');
             });
             
             $('#toggleConfirmPassword').off('click').on('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Toggle confirm password clicked');
+                
                 togglePasswordVisibility('#confirmPassword', '#toggleConfirmPassword');
             });
             
-            console.log('Password toggles setup complete');
+            
         }
         
         // Set up password toggles when document is ready
         $(document).ready(function() {
-            console.log('Document ready - setting up password toggle listeners');
-            console.log('Toggle elements exist:', {
-                current: $('#toggleCurrentPassword').length > 0,
-                new: $('#toggleNewPassword').length > 0,
-                confirm: $('#toggleConfirmPassword').length > 0
-            });
             
             // Initial setup
             setupPasswordToggles();
@@ -6692,7 +7145,7 @@ $(document).ready(function() {
             
             // Fallback: Also try vanilla JavaScript approach
             setTimeout(function() {
-                console.log('Trying vanilla JavaScript fallback for password toggles');
+                
                 
                 const toggleCurrent = document.getElementById('toggleCurrentPassword');
                 const toggleNew = document.getElementById('toggleNewPassword');
@@ -6701,7 +7154,7 @@ $(document).ready(function() {
                 if (toggleCurrent) {
                     toggleCurrent.addEventListener('click', function(e) {
                         e.preventDefault();
-                        console.log('Vanilla JS: Toggle current password clicked');
+                        
                         const input = document.getElementById('currentPassword');
                         const icon = this.querySelector('i');
                         
@@ -6720,7 +7173,7 @@ $(document).ready(function() {
                 if (toggleNew) {
                     toggleNew.addEventListener('click', function(e) {
                         e.preventDefault();
-                        console.log('Vanilla JS: Toggle new password clicked');
+                        
                         const input = document.getElementById('newPassword');
                         const icon = this.querySelector('i');
                         
@@ -6739,7 +7192,7 @@ $(document).ready(function() {
                 if (toggleConfirm) {
                     toggleConfirm.addEventListener('click', function(e) {
                         e.preventDefault();
-                        console.log('Vanilla JS: Toggle confirm password clicked');
+                        
                         const input = document.getElementById('confirmPassword');
                         const icon = this.querySelector('i');
                         
@@ -6758,41 +7211,45 @@ $(document).ready(function() {
             
             // Fallback: Also try vanilla JavaScript approach for change password button
             setTimeout(function() {
-                console.log('Setting up vanilla JS fallback for change password button');
+                
                 const changePasswordBtn = document.getElementById('changePasswordBtn');
                 if (changePasswordBtn) {
                     changePasswordBtn.addEventListener('click', function(e) {
                         e.preventDefault();
-                        console.log('Vanilla JS: Change password button clicked');
+                        
                         
                         // Get form values
                         const currentPassword = document.getElementById('currentPassword').value;
                         const newPassword = document.getElementById('newPassword').value;
                         const confirmPassword = document.getElementById('confirmPassword').value;
                         
-                        console.log('Vanilla JS form values:', {
-                            currentPassword: currentPassword ? 'filled' : 'empty',
-                            newPassword: newPassword ? 'filled' : 'empty',
-                            confirmPassword: confirmPassword ? 'filled' : 'empty'
-                        });
-                        
                         // Validation
                         if (!currentPassword || !newPassword || !confirmPassword) {
-                            alert('Please fill in all fields.');
+                            iziToast.error({
+                                title: 'Error',
+                                message: 'Please fill in all fields.',
+                                position: 'topRight'
+                            });
                             return;
                         }
                         
                         if (newPassword !== confirmPassword) {
-                            alert('New password and confirm password do not match.');
+                            iziToast.error({
+                                title: 'Error',
+                                message: 'New password and confirm password do not match.',
+                                position: 'topRight'
+                            });
                             return;
                         }
                         
                         if (newPassword.length < 6) {
-                            alert('New password must be at least 6 characters long.');
+                            iziToast.error({
+                                title: 'Error',
+                                message: 'New password must be at least 6 characters long.',
+                                position: 'topRight'
+                            });
                             return;
                         }
-                        
-                        console.log('Vanilla JS: Sending AJAX request');
                         
                         // Use fetch instead of jQuery AJAX
                         fetch('../backend/change-password.php', {
@@ -6808,17 +7265,27 @@ $(document).ready(function() {
                         })
                         .then(response => response.json())
                         .then(data => {
-                            console.log('Vanilla JS response:', data);
                             if (data.success) {
-                                alert('Password changed successfully!');
+                                iziToast.success({
+                                    title: 'Success',
+                                    message: 'Password changed successfully!',
+                                    position: 'topRight'
+                                });
                                 document.getElementById('changePasswordForm').reset();
                             } else {
-                                alert(data.message || 'Failed to change password.');
+                                iziToast.error({
+                                    title: 'Error',
+                                    message: data.message || 'Failed to change password.',
+                                    position: 'topRight'
+                                });
                             }
                         })
                         .catch(error => {
-                            console.error('Vanilla JS error:', error);
-                            alert('An error occurred while changing password.');
+                            iziToast.error({
+                                title: 'Error',
+                                message: 'An error occurred while changing password.',
+                                position: 'topRight'
+                            });
                         });
                     });
                 }
@@ -6876,10 +7343,10 @@ $(document).ready(function() {
         }
 
         function viewProperty(id) {
-            console.log('Viewing property with ID:', id);
+            
             if (id) {
                 const url = `../view-property-detail.php?id=${id}`;
-                console.log('Opening URL:', url);
+                
                 window.open(url, '_blank');
             } else {
                 iziToast.error({
@@ -7058,11 +7525,11 @@ $(document).ready(function() {
                 });
             }
         }
-
-
+        })
 
     </script>
 
 </body>
 
 </html>
+        

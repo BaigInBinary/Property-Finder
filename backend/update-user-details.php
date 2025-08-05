@@ -28,7 +28,7 @@ if (isset($_SESSION['user_id'])) {
     }
     
     // Validate location (letters, spaces, commas, dots, hyphens)
-    if (!empty($location) && !preg_match('/^[A-Za-z\s,.-]+$/', $location)) {
+    if (!empty($location) && !preg_match('/^[A-Za-z\s,.\-]+$/', $location)) {
         $errors[] = 'Location should only contain letters, spaces, commas, dots, and hyphens.';
     }
     

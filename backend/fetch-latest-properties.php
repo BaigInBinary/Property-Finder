@@ -21,6 +21,7 @@ if ($userId) {
 $query = "SELECT p.*, u.name AS user_name 
 FROM properties p 
 JOIN users u ON u.id = p.user_id 
+WHERE p.listing = 'approved'
 ORDER BY p.created_at DESC 
 LIMIT 4
 ";
@@ -39,8 +40,5 @@ while ($row = $result->fetch_assoc()) {
     $row['is_saved'] = in_array($row['id'], $savedPropertyIds) ? 1 : 0;
     $properties[] = $row;
 }
-
-// Debug: Log the response
-error_log('Properties found: ' . count($properties));
 
 echo json_encode(['status' => 'success', 'properties' => $properties]);
