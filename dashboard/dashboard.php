@@ -1431,7 +1431,7 @@ $stmt->close();
                                 
                                 <!-- Inline test for password toggles and change password button -->
                                 <script>
-                                    document.getElementById('changePasswordBtn'));
+                                    document.getElementById('changePasswordBtn')
                                     document.addEventListener('DOMContentLoaded', function() {
                                         const toggles = ['toggleCurrentPassword', 'toggleNewPassword', 'toggleConfirmPassword'];
                                         const inputs = ['currentPassword', 'newPassword', 'confirmPassword'];
@@ -1455,79 +1455,79 @@ $stmt->close();
                                             }
                                         });
                                         
-                                        const changePasswordBtn = document.getElementById('changePasswordBtn');
-                                        if (changePasswordBtn) {
-                                            changePasswordBtn.addEventListener('click', function(e) {
-                                                e.preventDefault();
+                                        // const changePasswordBtn = document.getElementById('changePasswordBtn');
+                                        // if (changePasswordBtn) {
+                                        //     changePasswordBtn.addEventListener('click', function(e) {
+                                        //         e.preventDefault();
                                                 
-                                                const currentPassword = document.getElementById('currentPassword').value;
-                                                const newPassword = document.getElementById('newPassword').value;
-                                                const confirmPassword = document.getElementById('confirmPassword').value;
+                                        //         const currentPassword = document.getElementById('currentPassword').value;
+                                        //         const newPassword = document.getElementById('newPassword').value;
+                                        //         const confirmPassword = document.getElementById('confirmPassword').value;
                                                 
-                                                if (!currentPassword || !newPassword || !confirmPassword) {
-                                                    iziToast.error({
-                                                        title: 'Error',
-                                                        message: 'Please fill in all fields.',
-                                                        position: 'topRight'
-                                                    });
-                                                    return;
-                                                }
+                                        //         if (!currentPassword || !newPassword || !confirmPassword) {
+                                        //             iziToast.error({
+                                        //                 title: 'Error',
+                                        //                 message: 'Please fill in all fields.',
+                                        //                 position: 'topRight'
+                                        //             });
+                                        //             return;
+                                        //         }
                                                 
-                                                if (newPassword !== confirmPassword) {
-                                                    iziToast.error({
-                                                        title: 'Error',
-                                                        message: 'New password and confirm password do not match.',
-                                                        position: 'topRight'
-                                                    });
-                                                    return;
-                                                }
+                                        //         if (newPassword !== confirmPassword) {
+                                        //             iziToast.error({
+                                        //                 title: 'Error',
+                                        //                 message: 'New password and confirm password do not match.',
+                                        //                 position: 'topRight'
+                                        //             });
+                                        //             return;
+                                        //         }
                                                 
-                                                if (newPassword.length < 6) {
-                                                    iziToast.error({
-                                                        title: 'Error',
-                                                        message: 'New password must be at least 6 characters long.',
-                                                        position: 'topRight'
-                                                    });
-                                                    return;
-                                                }
+                                        //         if (newPassword.length < 6) {
+                                        //             iziToast.error({
+                                        //                 title: 'Error',
+                                        //                 message: 'New password must be at least 6 characters long.',
+                                        //                 position: 'topRight'
+                                        //             });
+                                        //             return;
+                                        //         }
                                                 
-                                                fetch('../backend/change-password.php', {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'Content-Type': 'application/x-www-form-urlencoded',
-                                                    },
-                                                    body: new URLSearchParams({
-                                                        current_password: currentPassword,
-                                                        new_password: newPassword,
-                                                        confirm_password: confirmPassword
-                                                    })
-                                                })
-                                                .then(response => response.json())
-                                                .then(data => {
-                                                    if (data.success) {
-                                                        iziToast.success({
-                                                            title: 'Success',
-                                                            message: 'Password changed successfully!',
-                                                            position: 'topRight'
-                                                        });
-                                                        document.getElementById('changePasswordForm').reset();
-                                                    } else {
-                                                        iziToast.error({
-                                                            title: 'Error',
-                                                            message: data.message || 'Failed to change password.',
-                                                            position: 'topRight'
-                                                        });
-                                                    }
-                                                })
-                                                .catch(error => {
-                                                    iziToast.error({
-                                                        title: 'Error',
-                                                        message: 'An error occurred while changing password.',
-                                                        position: 'topRight'
-                                                    });
-                                                });
-                                            });
-                                        }
+                                        //         fetch('../backend/change-password.php', {
+                                        //             method: 'POST',
+                                        //             headers: {
+                                        //                 'Content-Type': 'application/x-www-form-urlencoded',
+                                        //             },
+                                        //             body: new URLSearchParams({
+                                        //                 current_password: currentPassword,
+                                        //                 new_password: newPassword,
+                                        //                 confirm_password: confirmPassword
+                                        //             })
+                                        //         })
+                                        //         .then(response => response.json())
+                                        //         .then(data => {
+                                        //             if (data.success) {
+                                        //                 iziToast.success({
+                                        //                     title: 'Success',
+                                        //                     message: 'Password changed successfully!',
+                                        //                     position: 'topRight'
+                                        //                 });
+                                        //                 document.getElementById('changePasswordForm').reset();
+                                        //             } else {
+                                        //                 iziToast.error({
+                                        //                     title: 'Error',
+                                        //                     message: data.message || 'Failed to change password.',
+                                        //                     position: 'topRight'
+                                        //                 });
+                                        //             }
+                                        //         })
+                                        //         .catch(error => {
+                                        //             iziToast.error({
+                                        //                 title: 'Error',
+                                        //                 message: 'An error occurred while changing password.',
+                                        //                 position: 'topRight'
+                                        //             });
+                                        //         });
+                                        //     });
+                                        // }
                                     });
                                 </script>
                             </form>
@@ -7187,86 +7187,86 @@ $(document).ready(function() {
             }, 500);
             
             // Fallback: Also try vanilla JavaScript approach for change password button
-            setTimeout(function() {
+            // setTimeout(function() {
                 
-                const changePasswordBtn = document.getElementById('changePasswordBtn');
-                if (changePasswordBtn) {
-                    changePasswordBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
+            //     const changePasswordBtn = document.getElementById('changePasswordBtn');
+            //     if (changePasswordBtn) {
+            //         changePasswordBtn.addEventListener('click', function(e) {
+            //             e.preventDefault();
                         
                         
-                        // Get form values
-                        const currentPassword = document.getElementById('currentPassword').value;
-                        const newPassword = document.getElementById('newPassword').value;
-                        const confirmPassword = document.getElementById('confirmPassword').value;
+            //             // Get form values
+            //             const currentPassword = document.getElementById('currentPassword').value;
+            //             const newPassword = document.getElementById('newPassword').value;
+            //             const confirmPassword = document.getElementById('confirmPassword').value;
                         
-                        // Validation
-                        if (!currentPassword || !newPassword || !confirmPassword) {
-                            iziToast.error({
-                                title: 'Error',
-                                message: 'Please fill in all fields.',
-                                position: 'topRight'
-                            });
-                            return;
-                        }
+            //             // Validation
+            //             if (!currentPassword || !newPassword || !confirmPassword) {
+            //                 iziToast.error({
+            //                     title: 'Error',
+            //                     message: 'Please fill in all fields.',
+            //                     position: 'topRight'
+            //                 });
+            //                 return;
+            //             }
                         
-                        if (newPassword !== confirmPassword) {
-                            iziToast.error({
-                                title: 'Error',
-                                message: 'New password and confirm password do not match.',
-                                position: 'topRight'
-                            });
-                            return;
-                        }
+            //             if (newPassword !== confirmPassword) {
+            //                 iziToast.error({
+            //                     title: 'Error',
+            //                     message: 'New password and confirm password do not match.',
+            //                     position: 'topRight'
+            //                 });
+            //                 return;
+            //             }
                         
-                        if (newPassword.length < 6) {
-                            iziToast.error({
-                                title: 'Error',
-                                message: 'New password must be at least 6 characters long.',
-                                position: 'topRight'
-                            });
-                            return;
-                        }
+            //             if (newPassword.length < 6) {
+            //                 iziToast.error({
+            //                     title: 'Error',
+            //                     message: 'New password must be at least 6 characters long.',
+            //                     position: 'topRight'
+            //                 });
+            //                 return;
+            //             }
                         
-                        // Use fetch instead of jQuery AJAX
-                        fetch('../backend/change-password.php', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                            },
-                            body: new URLSearchParams({
-                                current_password: currentPassword,
-                                new_password: newPassword,
-                                confirm_password: confirmPassword
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                iziToast.success({
-                                    title: 'Success',
-                                    message: 'Password changed successfully!',
-                                    position: 'topRight'
-                                });
-                                document.getElementById('changePasswordForm').reset();
-                            } else {
-                                iziToast.error({
-                                    title: 'Error',
-                                    message: data.message || 'Failed to change password.',
-                                    position: 'topRight'
-                                });
-                            }
-                        })
-                        .catch(error => {
-                            iziToast.error({
-                                title: 'Error',
-                                message: 'An error occurred while changing password.',
-                                position: 'topRight'
-                            });
-                        });
-                    });
-                }
-            }, 1000);
+            //             // Use fetch instead of jQuery AJAX
+            //             fetch('../backend/change-password.php', {
+            //                 method: 'POST',
+            //                 headers: {
+            //                     'Content-Type': 'application/x-www-form-urlencoded',
+            //                 },
+            //                 body: new URLSearchParams({
+            //                     current_password: currentPassword,
+            //                     new_password: newPassword,
+            //                     confirm_password: confirmPassword
+            //                 })
+            //             })
+            //             .then(response => response.json())
+            //             .then(data => {
+            //                 if (data.success) {
+            //                     iziToast.success({
+            //                         title: 'Success',
+            //                         message: 'Password changed successfully!',
+            //                         position: 'topRight'
+            //                     });
+            //                     document.getElementById('changePasswordForm').reset();
+            //                 } else {
+            //                     iziToast.error({
+            //                         title: 'Error',
+            //                         message: data.message || 'Failed to change password.',
+            //                         position: 'topRight'
+            //                     });
+            //                 }
+            //             })
+            //             .catch(error => {
+            //                 iziToast.error({
+            //                     title: 'Error',
+            //                     message: 'An error occurred while changing password.',
+            //                     position: 'topRight'
+            //                 });
+            //             });
+            //         });
+            //     }
+            // }, 1000);
         });
 
         // Admin Properties Functions
