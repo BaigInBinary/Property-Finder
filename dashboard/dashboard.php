@@ -6350,14 +6350,6 @@ $(document).ready(function() {
                     });
                     return false;
                 }
-
-                // If validation passes, proceed with form submission
-                
-                iziToast.info({
-                    title: 'Processing',
-                    message: 'Saving profile changes...',
-                    position: 'topRight'
-                });
                 
                 var formData = new FormData(this);
                 
@@ -6374,23 +6366,8 @@ $(document).ready(function() {
                     processData: false,
                     dataType: 'json',
                     beforeSend: function() {
-                        
-                        iziToast.info({
-                            title: 'Sending Request',
-                            message: 'Submitting profile changes to server...',
-                            position: 'topRight'
-                        });
                     },
                     success: function(response) {
-                        
-                        
-                        // Debug toast to show the response
-                        iziToast.info({
-                            title: 'Server Response',
-                            message: 'Response received: ' + JSON.stringify(response),
-                            position: 'topRight',
-                            timeout: 3000
-                        });
 
                         if (response.success) {
                             
