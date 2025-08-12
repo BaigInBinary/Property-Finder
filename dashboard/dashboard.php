@@ -2519,6 +2519,72 @@ $stmt->close();
     </div>
 </section>
 
+        <script>
+        function showLoading(message) {
+            $('#loadingText').text(message || 'Processing request...');
+            $('#loadingOverlay').css('display', 'flex');
+        }
+
+        function hideLoading() {
+            $('#loadingOverlay').hide();
+        }
+
+        function handleBuyRequest(id, action) {
+            if (!confirm('Are you sure you want to ' + action + ' this request?')) return;
+            
+            // Show loading and disable buttons
+            showLoading(action.charAt(0).toUpperCase() + action.slice(1) + ' action request...');
+            $('.btn').prop('disabled', true);
+            $('#req-' + id).addClass('row-loading');
+            
+            $.ajax({
+                url: '../backend/handle-buy-request.php',
+                method: 'POST',
+                data: { id: id, action: action },
+                dataType: 'json',
+                success: function(res) {
+                    hideLoading();
+                    $('.btn').prop('disabled', false);
+                    $('#req-' + id).removeClass('row-loading');
+                    
+                    if(res.success) {
+                        $('#req-' + id + ' td.status-pending').text(action.charAt(0).toUpperCase() + action.slice(1)).removeClass('status-pending').addClass('status-' + action);
+                        $('#req-' + id + ' td:last').html('<span>-</span>');
+                        iziToast.success({
+                            title: 'Success',
+                            message: res.message || 'Request ' + action + ' successfully.',
+                            position: 'topRight'
+                        });
+                        
+                        // If approved, refresh the page to show updated statuses of other requests
+                        if (action === 'approved') {
+                            showLoading('Refreshing page to show updated statuses...');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        }
+                    } else {
+                        iziToast.error({
+                            title: 'Error',
+                            message: res.message || 'Failed to update request.',
+                            position: 'topRight'
+                        });
+                    }
+                },
+                error: function() { 
+                    hideLoading();
+                    $('.btn').prop('disabled', false);
+                    $('#req-' + id).removeClass('row-loading');
+                    iziToast.error({
+                        title: 'Error',
+                        message: 'Error processing request.',
+                        position: 'topRight'
+                    }); 
+                }
+            });
+        }
+        </script>
+
 <!-- Property Approvals Section (Admin Only) -->
 <section id="property-approvals" class="dashboard-section">
 <div class="container-fluid">
@@ -2855,71 +2921,6 @@ $stmt->close();
 </section>
 
 <script>
-function showLoading(message) {
-    $('#loadingText').text(message || 'Processing request...');
-    $('#loadingOverlay').css('display', 'flex');
-}
-
-function hideLoading() {
-    $('#loadingOverlay').hide();
-}
-
-function handleBuyRequest(id, action) {
-    if (!confirm('Are you sure you want to ' + action + ' this request?')) return;
-    
-    // Show loading and disable buttons
-    showLoading(action.charAt(0).toUpperCase() + action.slice(1) + ' action request...');
-    $('.btn').prop('disabled', true);
-    $('#req-' + id).addClass('row-loading');
-    
-    $.ajax({
-        url: '../backend/handle-buy-request.php',
-        method: 'POST',
-        data: { id: id, action: action },
-        dataType: 'json',
-        success: function(res) {
-            hideLoading();
-            $('.btn').prop('disabled', false);
-            $('#req-' + id).removeClass('row-loading');
-            
-            if(res.success) {
-                $('#req-' + id + ' td.status-pending').text(action.charAt(0).toUpperCase() + action.slice(1)).removeClass('status-pending').addClass('status-' + action);
-                $('#req-' + id + ' td:last').html('<span>-</span>');
-                iziToast.success({
-                    title: 'Success',
-                    message: res.message || 'Request ' + action + ' successfully.',
-                    position: 'topRight'
-                });
-                
-                // If approved, refresh the page to show updated statuses of other requests
-                if (action === 'approved') {
-                    showLoading('Refreshing page to show updated statuses...');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1500);
-                }
-            } else {
-                iziToast.error({
-                    title: 'Error',
-                    message: res.message || 'Failed to update request.',
-                    position: 'topRight'
-                });
-            }
-        },
-        error: function() { 
-            hideLoading();
-            $('.btn').prop('disabled', false);
-            $('#req-' + id).removeClass('row-loading');
-            iziToast.error({
-                title: 'Error',
-                message: 'Error processing request.',
-                position: 'topRight'
-            }); 
-        }
-    });
-}
-
-
 
 function viewPropertyForApproval(id) {
     // Open property details in a new window or modal
