@@ -1431,6 +1431,12 @@ $stmt->close();
                                 
                                 <!-- Inline test for password toggles and change password button -->
                                 <script>
+                                    // Global function for viewing property details
+                                    function viewPropertyForApproval(id) {
+                                        // Open property details in a new window or modal
+                                        window.open('../view-property-detail.php?id=' + id, '_blank');
+                                    }
+                                    
                                     document.getElementById('changePasswordBtn')
                                     document.addEventListener('DOMContentLoaded', function() {
                                         const toggles = ['toggleCurrentPassword', 'toggleNewPassword', 'toggleConfirmPassword'];
