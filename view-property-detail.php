@@ -233,6 +233,7 @@ if ($soldCount > 0) {
                             </div>
                         </div>
                         <form id="contactForm" novalidate>
+                            <input type="hidden" id="property_id" value="<?php echo $propertyId; ?>">
                             <div class="mb-3">
                                 <label for="name" class="form-label">Your Name</label>
                                 <input type="text" class="form-control" id="name" required>

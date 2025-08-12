@@ -30,10 +30,12 @@ const handleVideoSection = () => {
 const handleBookmark = async () => {
   const bookmarkBtn = document.getElementById("bookmarkBtn");
   const bookmarkIcon = bookmarkBtn.querySelector("i");
-  const propertyId = new URLSearchParams(window.location.search).get("id");
+  const propertyId =
+    document.getElementById("property_id")?.value ||
+    new URLSearchParams(window.location.search).get("id");
 
   if (!propertyId) {
-    console.error("No property ID found in URL");
+    console.error("No property ID found");
     return;
   }
 
@@ -108,6 +110,11 @@ const handleBookmark = async () => {
 const handleReport = () => {
   const reportBtn = document.getElementById("reportBtn");
 
+  if (!reportBtn) {
+    console.log("Report button not found, skipping report functionality");
+    return;
+  }
+
   reportBtn.addEventListener("click", () => {
     // Create and show modal
     const modalHtml = `
@@ -163,8 +170,18 @@ const handleReport = () => {
 const handleContactForm = () => {
   const form = document.getElementById("contactForm");
 
+  if (!form) {
+    console.error("Contact form not found!");
+    return;
+  }
+
+  console.log("Setting up contact form handler");
+
   form.addEventListener("submit", async (e) => {
+    console.log("Form submission intercepted");
     e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
 
     if (!form.checkValidity()) {
       e.stopPropagation();
@@ -178,7 +195,7 @@ const handleContactForm = () => {
       email: document.getElementById("email").value,
       phone: document.getElementById("phone").value,
       message: document.getElementById("message").value,
-      property_id: new URLSearchParams(window.location.search).get("id"),
+      property_id: document.getElementById("property_id").value,
     };
 
     // Show loading state
@@ -199,9 +216,15 @@ const handleContactForm = () => {
       const data = await response.json();
 
       if (data.status === "success") {
+        // Store the property ID before reset
+        const propertyIdValue = document.getElementById("property_id").value;
+
         // Reset form
         form.reset();
         form.classList.remove("was-validated");
+
+        // Restore the property ID after reset
+        document.getElementById("property_id").value = propertyIdValue;
 
         // Show success message
         const alertHtml = `
@@ -266,6 +289,8 @@ const showToast = (message, type = "success") => {
 
 // Initialize all functionality when DOM is loaded
 document.addEventListener("DOMContentLoaded", async () => {
+  console.log("DOM loaded, initializing property detail functionality");
+
   initializeGallery();
   handleVideoSection();
   await handleBookmark();
@@ -276,3 +301,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
   tooltips.forEach((tooltip) => new bootstrap.Tooltip(tooltip));
 });
+
+// Also set up form handler immediately if DOM is already loaded
+if (document.readyState === "loading") {
+  // DOM is still loading, wait for DOMContentLoaded
+} else {
+  // DOM is already loaded, set up form handler immediately
+  console.log("DOM already loaded, setting up form handler immediately");
+  handleContactForm();
+}
